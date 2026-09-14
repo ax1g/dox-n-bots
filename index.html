@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Dox 'n Bots — a tactile dots and boxes game." />
+  <title>Dox 'n Bots</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main>
+    <header class="masthead"><a class="brand" href="/">DOX<span>’N</span>BOTS</a><p>DOTS. BOXES. TINY RIVALRIES.</p><button id="sound" aria-pressed="true">SOUND: ON</button></header>
+    <section class="hero"><p class="eyebrow">01 / CLAIM THE GRID</p><h1>Draw the line.<br><em>Own the box.</em></h1><p>Hover the field. Find the line. Don’t feed the bot.</p></section>
+    <section class="game-shell" aria-label="Dox 'n Bots game">
+      <aside class="setup" id="setup">
+        <p class="eyebrow">NEW MATCH</p>
+        <label>YOUR NAME <input id="name" minlength="3" maxlength="50" required placeholder="MIN. 3 LETTERS" autocomplete="nickname"></label>
+        <div class="size"><label>WIDTH <input id="cols" type="number" min="2" max="10" value="5"></label><label>HEIGHT <input id="rows" type="number" min="2" max="10" value="5"></label></div>
+        <label>BOT MODE <select id="difficulty"><option value="noob">NOOB — JUST VIBES</option><option value="casual" selected>CASUAL — A LITTLE MEAN</option><option value="god">GOD MODE — NO MERCY</option></select></label>
+        <button class="start" id="start">START MATCH <span>↗</span></button>
+        <p class="hint" id="message" role="status">Pick a name, then claim the grid.</p>
+      </aside>
+      <section class="board-wrap"><div class="scorebar"><span id="player-score">YOU <b>0</b></span><strong id="turn">READY?</strong><span id="bot-score">BOT <b>0</b></span></div><canvas id="board" aria-label="Dots and boxes board"></canvas><p class="board-hint">MOVE NEAR THE DOTS · THE GRID WILL ANSWER</p></section>
+    </section>
+    <section class="leaderboard"><div><p class="eyebrow">02 / HALL OF BOXES</p><h2>WHO<br><em>CLAIMED</em><br>WHAT.</h2></div><ol id="scores"><li>Loading scores…</li></ol></section>
+  </main>
+  <template id="score-row"><li><span class="rank"></span><b class="score-name"></b><span class="score-points"></span></li></template>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
