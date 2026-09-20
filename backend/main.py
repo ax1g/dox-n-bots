@@ -1,4 +1,5 @@
 """FastAPI service for the Dox 'n Bots leaderboard and live rooms."""
+
 import asyncio
 import secrets
 import sqlite3
@@ -62,11 +63,20 @@ class Room:
 
     def snapshot(self):
         return {
-            "type": "state", "room_id": self.room_id, "revision": self.revision,
-            "cols": self.cols, "rows": self.rows, "edges": sorted(self.edges),
-            "boxes": self.boxes, "scores": self.scores, "turn": self.turn,
+            "type": "state",
+            "room_id": self.room_id,
+            "revision": self.revision,
+            "cols": self.cols,
+            "rows": self.rows,
+            "edges": sorted(self.edges),
+            "boxes": self.boxes,
+            "scores": self.scores,
+            "turn": self.turn,
             "status": self.status,
-            "players": {seat: {"name": player.name, "connected": player.connected} for seat, player in self.players.items()},
+            "players": {
+                seat: {"name": player.name, "connected": player.connected}
+                for seat, player in self.players.items()
+            },
         }
 
 
@@ -76,7 +86,12 @@ def edge_id(a: int, b: int) -> str:
 
 def box_edges(room: Room, x: int, y: int) -> list[str]:
     a = y * room.cols + x
-    return [edge_id(a, a + 1), edge_id(a, a + room.cols), edge_id(a + 1, a + room.cols + 1), edge_id(a + room.cols, a + room.cols + 1)]
+    return [
+        edge_id(a, a + 1),
+        edge_id(a, a + room.cols),
+        edge_id(a + 1, a + room.cols + 1),
+        edge_id(a + room.cols, a + room.cols + 1),
+    ]
 
 
 def completed_boxes(room: Room, a: int, b: int) -> list[str]:
@@ -91,7 +106,12 @@ def completed_boxes(room: Room, a: int, b: int) -> list[str]:
         for x in (ax - 1, ax):
             if 0 <= x < room.cols - 1:
                 candidates.append((x, min(ay, by)))
-    return [f"{x}:{y}" for x, y in candidates if f"{x}:{y}" not in room.boxes and all(edge in room.edges for edge in box_edges(room, x, y))]
+    return [
+        f"{x}:{y}"
+        for x, y in candidates
+        if f"{x}:{y}" not in room.boxes
+        and all(edge in room.edges for edge in box_edges(room, x, y))
+    ]
 
 
 def legal_edge(room: Room, a: int, b: int) -> bool:
@@ -122,7 +142,11 @@ async def expire_rooms():
     now = time.monotonic()
     for room_id, room in list(rooms.items()):
         async with room.lock:
-            disconnected = any(player.disconnected_at and now - player.disconnected_at > DISCONNECT_GRACE for player in room.players.values())
+            disconnected = any(
+                player.disconnected_at
+                and now - player.disconnected_at > DISCONNECT_GRACE
+                for player in room.players.values()
+            )
             if room.status in {"active", "paused"} and disconnected:
                 room.status = "finished"
                 room.revision += 1
@@ -146,19 +170,28 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Dox 'n Bots API", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 
 def connection():
     db = sqlite3.connect(DB)
-    db.execute("CREATE TABLE IF NOT EXISTS scores (name TEXT NOT NULL, score INTEGER NOT NULL, width INTEGER NOT NULL, height INTEGER NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)")
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS scores (name TEXT NOT NULL, score INTEGER NOT NULL, width INTEGER NOT NULL, height INTEGER NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
+    )
     return db
 
 
 @app.get("/api/leaderboard")
 def leaderboard():
     with connection() as db:
-        rows = db.execute("SELECT name, score, width, height FROM scores ORDER BY score DESC, created_at ASC LIMIT 20").fetchall()
+        rows = db.execute(
+            "SELECT name, score, width, height FROM scores ORDER BY score DESC, created_at ASC LIMIT 20"
+        ).fetchall()
     return [dict(zip(("name", "score", "width", "height"), row)) for row in rows]
 
 
@@ -167,7 +200,10 @@ def add_score(score: Score):
     if not score.name.strip():
         raise HTTPException(status_code=422, detail="Name cannot be blank")
     with connection() as db:
-        db.execute("INSERT INTO scores (name, score, width, height) VALUES (?, ?, ?, ?)", (score.name.strip(), score.score, score.width, score.height))
+        db.execute(
+            "INSERT INTO scores (name, score, width, height) VALUES (?, ?, ?, ?)",
+            (score.name.strip(), score.score, score.width, score.height),
+        )
     return {"ok": True}
 
 
@@ -178,7 +214,9 @@ async def create_room(request: CreateRoom):
     while room_id in rooms:
         room_id = secrets.token_hex(3).upper()
     token = secrets.token_urlsafe(24)
-    rooms[room_id] = Room(room_id, request.cols, request.rows, {"p1": Player(request.name.strip(), token)})
+    rooms[room_id] = Room(
+        room_id, request.cols, request.rows, {"p1": Player(request.name.strip(), token)}
+    )
     return {"room_id": room_id, "seat": "p1", "token": token}
 
 
@@ -199,7 +237,13 @@ async def join_room(room_id: str, request: JoinRoom):
 @app.websocket("/ws/rooms/{room_id}")
 async def room_socket(websocket: WebSocket, room_id: str, token: str):
     room = rooms.get(room_id.upper())
-    seat = next((key for key, player in room.players.items() if player.token == token), None) if room else None
+    seat = (
+        next(
+            (key for key, player in room.players.items() if player.token == token), None
+        )
+        if room
+        else None
+    )
     if not room or not seat:
         await websocket.close(code=1008)
         return
@@ -209,7 +253,11 @@ async def room_socket(websocket: WebSocket, room_id: str, token: str):
         player.socket = websocket
         player.connected = True
         player.disconnected_at = None
-        if len(room.players) == 2 and all(item.connected for item in room.players.values()) and room.status in {"waiting", "paused"}:
+        if (
+            len(room.players) == 2
+            and all(item.connected for item in room.players.values())
+            and room.status in {"waiting", "paused"}
+        ):
             room.status = "active"
         room.revision += 1
         room.updated_at = time.monotonic()
@@ -218,23 +266,35 @@ async def room_socket(websocket: WebSocket, room_id: str, token: str):
         while True:
             message = await websocket.receive_json()
             if message.get("type") != "move":
-                await websocket.send_json({"type": "error", "message": "Unknown game action."})
+                await websocket.send_json(
+                    {"type": "error", "message": "Unknown game action."}
+                )
                 continue
             edge = message.get("edge")
-            if not isinstance(edge, list) or len(edge) != 2 or not all(isinstance(value, int) for value in edge):
+            if (
+                not isinstance(edge, list)
+                or len(edge) != 2
+                or not all(isinstance(value, int) for value in edge)
+            ):
                 await websocket.send_json({"type": "error", "message": "Invalid edge."})
                 continue
             a, b = edge
             async with room.lock:
                 if room.status != "active":
-                    await websocket.send_json({"type": "error", "message": "Match is not active."})
+                    await websocket.send_json(
+                        {"type": "error", "message": "Match is not active."}
+                    )
                     continue
                 if room.turn != seat:
-                    await websocket.send_json({"type": "error", "message": "Wait for your turn."})
+                    await websocket.send_json(
+                        {"type": "error", "message": "Wait for your turn."}
+                    )
                     continue
                 edge_key = edge_id(a, b)
                 if not legal_edge(room, a, b) or edge_key in room.edges:
-                    await websocket.send_json({"type": "error", "message": "That line is unavailable."})
+                    await websocket.send_json(
+                        {"type": "error", "message": "That line is unavailable."}
+                    )
                     continue
                 room.edges.add(edge_key)
                 boxes = completed_boxes(room, a, b)

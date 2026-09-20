@@ -1,24 +1,222 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Dox 'n Bots - a tactile dots and boxes game." />
-  <title>Dox 'n Bots</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <main>
-    <header class="masthead"><a class="brand" href="#home" data-screen="home">DOX<span>'N</span>BOTS</a><p>DOTS. BOXES. TINY RIVALRIES.</p><button id="sound" aria-pressed="true">SOUND: ON</button></header>
-    <section class="screen active landing" id="home" aria-labelledby="home-title"><div><p class="eyebrow">TINY RIVALRIES / BIG BRAGGING RIGHTS</p><h1 id="home-title">DRAW THE LINE.<br><em>OWN THE BOX.</em></h1><p>Pick a rival, build a grid, and turn every last edge into a decision.</p><button class="primary huge" data-screen="menu">START GAME <span>↗</span></button></div><div class="landing-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></section>
-    <section class="screen menu" id="menu" aria-labelledby="menu-title"><div class="panel menu-panel"><p class="eyebrow">CHOOSE YOUR FIGHT</p><h2 id="menu-title">GAME<br><em>MENU.</em></h2><button class="primary" data-screen="solo">SOLO VS BOT <span>→</span></button><button class="secondary" data-screen="online">ONLINE VS FRIEND <span>→</span></button><button class="secondary" data-screen="scores">HALL OF BOXES <span>→</span></button><button class="text-button" data-screen="home">BACK</button></div></section>
-    <section class="screen setup-screen" id="solo" aria-labelledby="solo-title"><form class="panel setup" id="solo-form"><div class="setup-heading"><p class="eyebrow">SOLO MATCH</p><h2 id="solo-title">PICK YOUR <em>RIVAL.</em></h2></div><div class="config-row"><label>YOUR NAME <input id="name" minlength="3" maxlength="50" required placeholder="MIN. 3 LETTERS" autocomplete="nickname"></label><label>BOT MODE <select id="difficulty"><option value="noob">NOOB</option><option value="casual" selected>CASUAL</option><option value="god">GOD MODE</option></select></label><div class="size"><label>WIDTH <input id="cols" type="number" min="2" max="10" step="1" value="5"></label><label>HEIGHT <input id="rows" type="number" min="2" max="10" step="1" value="5"></label></div></div><div class="form-actions"><button class="primary" id="start" type="submit">START MATCH <span>↗</span></button><button class="text-button" type="button" data-screen="menu">BACK</button></div><p class="hint" id="message" role="status"></p></form></section>
-    <section class="screen setup-screen" id="online" aria-labelledby="online-title"><form class="panel setup" id="online-form"><div class="setup-heading"><p class="eyebrow">ONLINE MATCH</p><h2 id="online-title">PHONE A <em>FRIEND.</em></h2></div><div class="config-row"><label>YOUR NAME <input id="online-name" minlength="3" maxlength="50" required placeholder="MIN. 3 LETTERS" autocomplete="nickname"></label><div class="size"><label>WIDTH <input id="online-cols" type="number" min="2" max="10" step="1" value="5"></label><label>HEIGHT <input id="online-rows" type="number" min="2" max="10" step="1" value="5"></label></div><label>ROOM CODE <input id="room-code" maxlength="8" placeholder="ENTER CODE"></label></div><div class="form-actions"><button class="primary" type="submit">CREATE ROOM <span>↗</span></button><button class="secondary" id="join-room" type="button">JOIN ROOM <span>→</span></button><button class="text-button" type="button" data-screen="menu">BACK</button></div><p class="hint" id="online-message" role="status">Create a room, then share the code.</p></form></section>
-    <section class="screen game-screen" id="game" aria-label="Dox 'n Bots game"><section class="board-wrap"><div class="scorebar"><span id="player-score">YOU <b>0</b></span><strong id="turn">READY?</strong><span id="bot-score">RIVAL <b>0</b></span></div><canvas id="board" aria-label="Dots and boxes board"></canvas><p class="board-hint" id="board-hint">MOVE NEAR THE DOTS - THE GRID WILL ANSWER</p><div class="game-actions"><button class="text-button" id="copy-room" hidden>COPY ROOM CODE</button><button class="text-button" data-screen="menu">LEAVE MATCH</button></div></section></section>
-    <section class="screen scores-screen" id="scores" aria-labelledby="scores-title"><div class="panel score-panel"><p class="eyebrow">HALL OF BOXES</p><h2 id="scores-title">WHO<br><em>CLAIMED</em><br>WHAT.</h2><ol id="score-list"><li>Loading scores...</li></ol><button class="text-button" data-screen="menu">BACK</button></div></section>
-    <section class="result" id="result" aria-live="assertive" aria-hidden="true"><div class="confetti" id="confetti" aria-hidden="true"></div><div class="result-card"><p class="eyebrow" id="result-kicker">MATCH COMPLETE</p><h2 id="result-title">YOU<br><em>WIN.</em></h2><p id="result-copy"></p><button class="primary" data-screen="menu">PLAY AGAIN <span>↗</span></button></div></section>
-  </main>
-  <template id="score-row"><li><span class="rank"></span><b class="score-name"></b><span class="score-points"></span></li></template>
-  <script type="module" src="app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Dox 'n Bots - a tactile dots and boxes game."
+    />
+    <title>Dox 'n Bots</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <header class="masthead">
+        <a class="brand" href="#home" data-screen="home"
+          >DOX<span>'N</span>BOTS</a
+        >
+        <p>DOTS. BOXES. TINY RIVALRIES.</p>
+        <button id="sound" aria-pressed="true">SOUND: ON</button>
+      </header>
+      <section
+        class="screen active landing"
+        id="home"
+        aria-labelledby="home-title"
+      >
+        <div>
+          <p class="eyebrow">TINY RIVALRIES / BIG BRAGGING RIGHTS</p>
+          <h1 id="home-title">DRAW THE LINE.<br /><em>OWN THE BOX.</em></h1>
+          <p>
+            Pick a rival, build a grid, and turn every last edge into a
+            decision.
+          </p>
+          <button class="primary huge" data-screen="menu">
+            START GAME <span>↗</span>
+          </button>
+        </div>
+        <div class="landing-mark" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </section>
+      <section class="screen menu" id="menu" aria-labelledby="menu-title">
+        <div class="panel menu-panel">
+          <p class="eyebrow">CHOOSE YOUR FIGHT</p>
+          <h2 id="menu-title">GAME<br /><em>MENU.</em></h2>
+          <button class="primary" data-screen="solo">
+            SOLO VS BOT <span>→</span></button
+          ><button class="secondary" data-screen="online">
+            ONLINE VS FRIEND <span>→</span></button
+          ><button class="secondary" data-screen="scores">
+            HALL OF BOXES <span>→</span></button
+          ><button class="text-button" data-screen="home">BACK</button>
+        </div>
+      </section>
+      <section
+        class="screen setup-screen"
+        id="solo"
+        aria-labelledby="solo-title"
+      >
+        <form class="panel setup" id="solo-form">
+          <div class="setup-heading">
+            <p class="eyebrow">SOLO MATCH</p>
+            <h2 id="solo-title">PICK YOUR <em>RIVAL.</em></h2>
+          </div>
+          <div class="config-row">
+            <label
+              >YOUR NAME
+              <input
+                id="name"
+                minlength="3"
+                maxlength="50"
+                required
+                placeholder="MIN. 3 LETTERS"
+                autocomplete="nickname" /></label
+            ><label
+              >BOT MODE
+              <select id="difficulty">
+                <option value="noob">NOOB</option>
+                <option value="casual" selected>CASUAL</option>
+                <option value="god">GOD MODE</option>
+              </select></label
+            >
+            <fieldset class="size-toggle" data-size-for="solo">
+              <legend>GRID SIZE</legend>
+              <button type="button" data-grid-size="4" aria-pressed="false">
+                S <small>4 × 4</small>
+              </button>
+              <button type="button" data-grid-size="6" aria-pressed="true">
+                M <small>6 × 6</small>
+              </button>
+              <button type="button" data-grid-size="8" aria-pressed="false">
+                L <small>8 × 8</small>
+              </button>
+              <input id="cols" type="hidden" value="6" />
+              <input id="rows" type="hidden" value="6" />
+            </fieldset>
+          </div>
+          <div class="form-actions">
+            <button class="primary" id="start" type="submit">
+              START MATCH <span>↗</span></button
+            ><button class="text-button" type="button" data-screen="menu">
+              BACK
+            </button>
+          </div>
+          <p class="hint" id="message" role="status"></p>
+        </form>
+      </section>
+      <section
+        class="screen setup-screen"
+        id="online"
+        aria-labelledby="online-title"
+      >
+        <form class="panel setup" id="online-form">
+          <div class="setup-heading">
+            <p class="eyebrow">ONLINE MATCH</p>
+            <h2 id="online-title">PHONE A <em>FRIEND.</em></h2>
+          </div>
+          <div class="config-row">
+            <label
+              >YOUR NAME
+              <input
+                id="online-name"
+                minlength="3"
+                maxlength="50"
+                required
+                placeholder="MIN. 3 LETTERS"
+                autocomplete="nickname"
+            /></label>
+            <fieldset class="size-toggle" data-size-for="online">
+              <legend>GRID SIZE</legend>
+              <button type="button" data-grid-size="4" aria-pressed="false">
+                S <small>4 × 4</small>
+              </button>
+              <button type="button" data-grid-size="6" aria-pressed="true">
+                M <small>6 × 6</small>
+              </button>
+              <button type="button" data-grid-size="8" aria-pressed="false">
+                L <small>8 × 8</small>
+              </button>
+              <input id="online-cols" type="hidden" value="6" />
+              <input id="online-rows" type="hidden" value="6" />
+            </fieldset>
+            <label
+              >ROOM CODE
+              <input id="room-code" maxlength="8" placeholder="ENTER CODE"
+            /></label>
+          </div>
+          <div class="form-actions">
+            <button class="primary" type="submit">
+              CREATE ROOM <span>↗</span></button
+            ><button class="secondary" id="join-room" type="button">
+              JOIN ROOM <span>→</span></button
+            ><button class="text-button" type="button" data-screen="menu">
+              BACK
+            </button>
+          </div>
+          <p class="hint" id="online-message" role="status">
+            Create a room, then share the code.
+          </p>
+        </form>
+      </section>
+      <section
+        class="screen game-screen"
+        id="game"
+        aria-label="Dox 'n Bots game"
+      >
+        <section class="board-wrap">
+          <div class="scorebar">
+            <span id="player-score">YOU <b>0</b></span
+            ><strong id="turn">READY?</strong
+            ><span id="bot-score">RIVAL <b>0</b></span>
+          </div>
+          <canvas id="board" aria-label="Dots and boxes board"></canvas>
+          <p class="board-hint" id="board-hint">
+            MOVE NEAR THE DOTS - THE GRID WILL ANSWER
+          </p>
+          <div class="game-actions">
+            <button class="text-button" id="copy-room" hidden>
+              COPY ROOM CODE</button
+            ><button class="text-button" data-screen="menu">LEAVE MATCH</button>
+          </div>
+        </section>
+      </section>
+      <section
+        class="screen scores-screen"
+        id="scores"
+        aria-labelledby="scores-title"
+      >
+        <div class="panel score-panel">
+          <p class="eyebrow">HALL OF BOXES</p>
+          <h2 id="scores-title">WHO<br /><em>CLAIMED</em><br />WHAT.</h2>
+          <ol id="score-list">
+            <li>Loading scores...</li>
+          </ol>
+          <button class="text-button" data-screen="menu">BACK</button>
+        </div>
+      </section>
+      <section
+        class="result"
+        id="result"
+        aria-live="assertive"
+        aria-hidden="true"
+      >
+        <div class="confetti" id="confetti" aria-hidden="true"></div>
+        <div class="result-card">
+          <p class="eyebrow" id="result-kicker">MATCH COMPLETE</p>
+          <h2 id="result-title">YOU<br /><em>WIN.</em></h2>
+          <p id="result-copy"></p>
+          <button class="primary" data-screen="menu">
+            PLAY AGAIN <span>↗</span>
+          </button>
+        </div>
+      </section>
+    </main>
+    <template id="score-row"
+      ><li>
+        <span class="rank"></span><b class="score-name"></b
+        ><span class="score-points"></span></li
+    ></template>
+    <script type="module" src="app.js"></script>
+  </body>
 </html>
