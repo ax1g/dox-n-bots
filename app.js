@@ -2,6 +2,7 @@ const canvas = document.querySelector("#board");
 const ctx = canvas.getContext("2d");
 const $ = (selector) => document.querySelector(selector);
 const localKey = "dox-n-bots-scores";
+const themeKey = "dox-n-bots-theme";
 let sound = true;
 let audio;
 let game;
@@ -39,6 +40,16 @@ const tone = (frequency, duration = 0.045, type = "sine", volume = 0.075) => {
 };
 const clickSound = (target) =>
   tone(target.classList.contains("primary") ? 290 : 210, 0.055, "triangle");
+const color = (name) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+function setTheme(dark) {
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  $("#theme").textContent = `DARK: ${dark ? "ON" : "OFF"}`;
+  $("#theme").setAttribute("aria-pressed", String(dark));
+  localStorage.setItem(themeKey, dark ? "dark" : "light");
+  draw();
+}
 
 function showScreen(name) {
   document
@@ -172,7 +183,9 @@ function draw() {
   for (const [key, owner] of game.boxes) {
     const [x, y] = key.split(":").map(Number);
     ctx.fillStyle =
-      owner === "player" || owner === seat ? "#f4512940" : "#1d211e18";
+      owner === "player" || owner === seat
+        ? color("--claimed-player")
+        : color("--claimed-rival");
     ctx.fillRect(
       layout.pad + x * layout.sx + 4,
       layout.pad + y * layout.sy + 4,
@@ -193,12 +206,12 @@ function draw() {
     ctx.stroke();
   };
   edgeList().forEach((edge) => {
-    if (game.edges.has(id(...edge))) line(edge, "#1d211e", 5);
+    if (game.edges.has(id(...edge))) line(edge, color("--ink"), 5);
   });
-  if (hover && !game.edges.has(id(...hover))) line(hover, "#f45129", 4);
+  if (hover && !game.edges.has(id(...hover))) line(hover, color("--orange"), 4);
   for (let index = 0; index < game.cols * game.rows; index++) {
     const p = point(index, layout);
-    ctx.fillStyle = "#1d211e";
+    ctx.fillStyle = color("--ink");
     ctx.beginPath();
     ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
     ctx.fill();
@@ -554,5 +567,10 @@ $("#sound").addEventListener("click", () => {
   $("#sound").textContent = `SOUND: ${sound ? "ON" : "OFF"}`;
   $("#sound").setAttribute("aria-pressed", String(sound));
 });
+$("#theme").addEventListener("click", () => {
+  setTheme(document.documentElement.dataset.theme !== "dark");
+  tone(330, 0.08, "triangle", 0.1);
+});
 window.addEventListener("resize", draw);
+setTheme(localStorage.getItem(themeKey) === "dark");
 loadScores();
