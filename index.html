@@ -113,8 +113,13 @@
           <div class="form-actions">
             <button class="primary" id="start" type="submit">
               START MATCH <span>↗</span></button
-            ><button class="text-button" type="button" data-screen="menu">
-              BACK
+            ><button
+              class="modal-back"
+              type="button"
+              data-screen="menu"
+              aria-label="Back to game menu"
+            >
+              ←
             </button>
           </div>
           <p class="hint" id="message" role="status"></p>
@@ -165,8 +170,13 @@
               CREATE ROOM <span>↗</span></button
             ><button class="secondary" id="join-room" type="button">
               JOIN ROOM <span>→</span></button
-            ><button class="text-button" type="button" data-screen="menu">
-              BACK
+            ><button
+              class="modal-back"
+              type="button"
+              data-screen="menu"
+              aria-label="Back to game menu"
+            >
+              ←
             </button>
           </div>
           <p class="hint" id="online-message" role="status">
@@ -212,7 +222,13 @@
               <li>Loading scores...</li>
             </ol>
           </div>
-          <button class="text-button" data-screen="menu">BACK</button>
+          <button
+            class="modal-back"
+            data-screen="menu"
+            aria-label="Back to game menu"
+          >
+            ←
+          </button>
         </div>
       </section>
       <section

@@ -13,6 +13,7 @@
   --claimed-player: #4385ff8c;
   --claimed-rival: #f044578c;
   --hover: #ffd166;
+  --silver: #667b91;
   font-family: "DM Sans", sans-serif;
   color: var(--ink);
   background: var(--paper);
@@ -28,6 +29,7 @@ html[data-theme="dark"] {
   --claimed-player: #6f94cf8c;
   --claimed-rival: #e66b648c;
   --hover: #ffe08a;
+  --silver: #d4e1ed;
 }
 * {
   box-sizing: border-box;
@@ -359,12 +361,45 @@ button {
   padding: 1.5rem 0;
 }
 .panel {
+  position: relative;
   width: min(100%, 900px);
   border: 2px solid var(--ink);
   background: var(--paper);
   padding: clamp(1.5rem, 4vw, 3rem);
   border-radius: 1.25rem;
   box-shadow: 10px 10px 0 var(--red);
+}
+.modal-back {
+  position: absolute;
+  top: -1.25rem;
+  right: 1.25rem;
+  z-index: 1;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font:
+    800 1.7rem/1 "DM Sans",
+    sans-serif;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition:
+    transform 0.12s,
+    background 0.12s,
+    box-shadow 0.12s;
+}
+.modal-back:hover,
+.modal-back:focus-visible {
+  background: var(--blue);
+  transform: translate(-2px, -2px) rotate(-8deg);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+.modal-back:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
 }
 .menu-panel {
   width: min(100%, 580px);
@@ -606,7 +641,7 @@ canvas {
   grid-template-columns: minmax(14rem, 0.6fr) minmax(0, 1.4fr);
   grid-template-rows: minmax(0, 1fr) auto;
   gap: 1.5rem 3rem;
-  overflow: hidden;
+  overflow: visible;
 }
 .score-panel h2 {
   font-size: clamp(3.5rem, 7vw, 6rem);
@@ -683,7 +718,7 @@ canvas {
   color: #d6a932;
 }
 .rank-2 {
-  color: #aeb5be;
+  color: var(--silver);
 }
 .rank-3 {
   color: #b46d46;
@@ -708,7 +743,7 @@ canvas {
   color: #ffd04a;
 }
 .rank-2 {
-  color: #e4edf5;
+  color: var(--silver);
   font-size: 2.2rem;
 }
 .rank-3 {
