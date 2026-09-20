@@ -624,6 +624,24 @@ canvas {
   overflow: auto;
   padding-right: 1rem;
   scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blue) color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.score-table::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.score-table::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.score-table::-webkit-scrollbar-thumb {
+  border: 2px solid var(--paper);
+  border-radius: 999px;
+  background: var(--blue);
+}
+.score-table::-webkit-scrollbar-thumb:hover {
+  background: var(--red);
 }
 #score-list,
 #landing-scores {
