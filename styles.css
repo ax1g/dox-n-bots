@@ -162,15 +162,33 @@ button {
   transform: rotate(-8deg);
 }
 .landing-leaderboard {
-  width: min(100%, 480px);
-  justify-self: end;
-  padding: 1rem 0 1rem 1rem;
-  border-left: 3px solid var(--ink);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--blue) 20%, transparent),
-    transparent 70%
-  );
+  position: relative;
+  width: calc(100% + 9vw);
+  min-width: 29rem;
+  justify-self: start;
+  margin-right: -9vw;
+  padding: 1.25rem 2.25rem 1.25rem 3.4rem;
+  border: 2px solid var(--ink);
+  border-right: 0;
+  clip-path: polygon(7% 0, 100% 0, 100% 100%, 0 100%, 0 16%);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--blue) 34%, var(--paper)),
+      var(--paper) 62%
+    ),
+    var(--paper);
+  box-shadow: 7px 7px 0 var(--red);
+}
+.landing-leaderboard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1.45rem;
+  background: var(--red);
+  clip-path: polygon(55% 0, 100% 0, 45% 100%, 0 100%);
 }
 .landing-leaderboard .eyebrow {
   margin-bottom: 0.6rem;
@@ -184,7 +202,7 @@ button {
 .landing-leaderboard #landing-scores li {
   min-width: 0;
   border: 2px solid var(--ink);
-  border-radius: 0.8rem;
+  border-radius: 0.8rem 0 0 0.8rem;
   background: var(--paper);
   box-shadow: 4px 4px 0 color-mix(in srgb, var(--ink) 70%, transparent);
   transform-origin: left center;
@@ -832,6 +850,12 @@ canvas {
   }
   .landing-mark {
     display: none;
+  }
+  .landing-leaderboard {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding-left: 2.5rem;
   }
   .landing h1 {
     font-size: clamp(3.6rem, 18vw, 6.5rem);
