@@ -17,8 +17,10 @@
           >DOX<span>'N</span>BOTS</a
         >
         <p>DOTS. BOXES. TINY RIVALRIES.</p>
-        <button id="theme" aria-pressed="false">DARK: OFF</button>
-        <button id="sound" aria-pressed="true">SOUND: ON</button>
+        <div class="header-actions">
+          <button id="theme" aria-pressed="false">DARK: OFF</button>
+          <button id="sound" aria-pressed="true">SOUND: ON</button>
+        </div>
       </header>
       <section
         class="screen active landing"
@@ -36,9 +38,18 @@
             START GAME <span>↗</span>
           </button>
         </div>
-        <div class="landing-mark" aria-hidden="true">
-          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-        </div>
+        <section
+          class="landing-leaderboard"
+          aria-labelledby="landing-scores-title"
+        >
+          <p class="eyebrow" id="landing-scores-title">LEADERBOARD</p>
+          <ol id="landing-scores">
+            <li>Loading matches...</li>
+          </ol>
+          <button class="text-button" data-screen="scores">
+            VIEW ALL RESULTS
+          </button>
+        </section>
       </section>
       <section class="screen menu" id="menu" aria-labelledby="menu-title">
         <div class="panel menu-panel">
@@ -49,7 +60,7 @@
           ><button class="secondary" data-screen="online">
             ONLINE VS FRIEND <span>→</span></button
           ><button class="secondary" data-screen="scores">
-            HALL OF BOXES <span>→</span></button
+            LEADERBOARD <span>→</span></button
           ><button class="text-button" data-screen="home">BACK</button>
         </div>
       </section>
@@ -188,8 +199,8 @@
         aria-labelledby="scores-title"
       >
         <div class="panel score-panel">
-          <p class="eyebrow">HALL OF BOXES</p>
-          <h2 id="scores-title">WHO<br /><em>CLAIMED</em><br />WHAT.</h2>
+          <p class="eyebrow">LEADERBOARD</p>
+          <h2 id="scores-title">WHO<br /><em>WON</em><br />WHAT.</h2>
           <ol id="score-list">
             <li>Loading scores...</li>
           </ol>
@@ -215,8 +226,11 @@
     </main>
     <template id="score-row"
       ><li>
-        <span class="rank"></span><b class="score-name"></b
-        ><span class="score-points"></span></li
+        <span class="rank"></span>
+        <div class="match-detail">
+          <b class="score-name"></b><span class="match-result"></span>
+        </div>
+        <strong class="score-points"></strong></li
     ></template>
     <script type="module" src="app.js"></script>
   </body>

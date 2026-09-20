@@ -25,7 +25,7 @@ const edgeList = () => {
     }
   return out;
 };
-const tone = (frequency, duration = 0.045, type = "sine", volume = 0.075) => {
+const tone = (frequency, duration = 0.045, type = "sine", volume = 0.13) => {
   if (!sound) return;
   audio ??= new AudioContext();
   const oscillator = audio.createOscillator();
@@ -38,8 +38,11 @@ const tone = (frequency, duration = 0.045, type = "sine", volume = 0.075) => {
   oscillator.start();
   oscillator.stop(audio.currentTime + duration);
 };
-const clickSound = (target) =>
-  tone(target.classList.contains("primary") ? 290 : 210, 0.055, "triangle");
+const clickSound = (target) => {
+  const primary = target.classList.contains("primary");
+  tone(primary ? 330 : 240, 0.055, "triangle", 0.14);
+  setTimeout(() => tone(primary ? 510 : 390, 0.035, "sine", 0.09), 24);
+};
 const color = (name) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
@@ -192,6 +195,20 @@ function draw() {
       layout.sx - 8,
       layout.sy - 8,
     );
+    const claimer =
+      owner === "player" || owner === seat
+        ? game.names.player
+        : game.names.rival;
+    ctx.fillStyle = color("--ink");
+    ctx.font = `800 ${clamp(Math.min(layout.sx, layout.sy) * 0.2, 10, 24)}px "Barlow Condensed"`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(
+      claimer.slice(0, 8).toUpperCase(),
+      layout.pad + (x + 0.5) * layout.sx,
+      layout.pad + (y + 0.5) * layout.sy,
+      layout.sx - 12,
+    );
   }
   const line = (edge, color, width = 4) => {
     const [a, b] = edge;
@@ -208,7 +225,7 @@ function draw() {
   edgeList().forEach((edge) => {
     if (game.edges.has(id(...edge))) line(edge, color("--ink"), 5);
   });
-  if (hover && !game.edges.has(id(...hover))) line(hover, color("--orange"), 4);
+  if (hover && !game.edges.has(id(...hover))) line(hover, color("--hover"), 6);
   for (let index = 0; index < game.cols * game.rows; index++) {
     const p = point(index, layout);
     ctx.fillStyle = color("--ink");
@@ -273,7 +290,19 @@ function endLocalGame() {
   $("#board-hint").textContent =
     `${result}. ${game.player} BOXES FOR ${game.names.player}.`;
   showResult(result, game.player, winner);
-  saveScore(game.names.player, game.player, game.cols, game.rows);
+  saveScore(
+    game.names.player,
+    game.player,
+    game.cols,
+    game.rows,
+    game.names.rival,
+    result === "YOU WIN"
+      ? game.names.player
+      : result === "BOT WINS"
+        ? game.names.rival
+        : "DRAW",
+    Math.abs(game.player - game.bot),
+  );
 }
 function take(edge, owner) {
   game.edges.add(id(...edge));
@@ -324,8 +353,16 @@ function botMove() {
   take(choice, "bot");
 }
 
-async function saveScore(name, score, width, height) {
-  const payload = { name, score, width, height };
+async function saveScore(
+  name,
+  score,
+  width,
+  height,
+  opponent = "BOT",
+  winner = "BOT",
+  margin = 0,
+) {
+  const payload = { name, score, width, height, opponent, winner, margin };
   const local = JSON.parse(localStorage.getItem(localKey) || "[]");
   local.push(payload);
   localStorage.setItem(localKey, JSON.stringify(local));
@@ -348,22 +385,38 @@ async function loadScores() {
       .sort((a, b) => b.score - a.score)
       .slice(0, 10);
   }
-  const list = $("#score-list");
   const template = $("#score-row");
-  list.replaceChildren();
-  (scores.length ? scores : [{ name: "BE THE FIRST", score: "---" }])
-    .slice(0, 10)
-    .forEach((entry, index) => {
-      const row = template.content.cloneNode(true);
-      row.querySelector(".rank").textContent =
-        `${String(index + 1).padStart(2, "0")} /`;
-      row.querySelector(".score-name").textContent = entry.name;
-      row.querySelector(".score-points").textContent =
-        entry.score === "---"
-          ? "---"
-          : `${entry.score} BOX${entry.score === 1 ? "" : "ES"}`;
-      list.append(row);
-    });
+  const entries = scores.length
+    ? scores
+    : [{ name: "BE THE FIRST", score: "---" }];
+  [$("#landing-scores"), $("#score-list")].forEach((list) => {
+    list.replaceChildren();
+    entries
+      .slice(0, list.id === "landing-scores" ? 5 : 20)
+      .forEach((entry, index) => {
+        const row = template.content.cloneNode(true);
+        const rank = row.querySelector(".rank");
+        rank.textContent = index < 3 ? "🏆" : `#${index + 1}`;
+        rank.classList.toggle(`rank-${index + 1}`, index < 3);
+        row.querySelector(".score-name").textContent =
+          entry.score === "---"
+            ? entry.name
+            : `${entry.name} vs ${entry.opponent || "BOT"}`;
+        const date = entry.created_at
+          ? new Date(`${entry.created_at}Z`).toISOString().slice(0, 10)
+          : "LOCAL";
+        const margin = Number(entry.margin || 0);
+        row.querySelector(".match-result").textContent =
+          entry.score === "---"
+            ? "START THE FIRST MATCH"
+            : `${date}  ${entry.winner || entry.name} won by ${margin} box${margin === 1 ? "" : "es"}`;
+        row.querySelector(".score-points").textContent =
+          entry.score === "---"
+            ? "---"
+            : `${entry.score} BOX${entry.score === 1 ? "" : "ES"}`;
+        list.append(row);
+      });
+  });
 }
 
 function applyRemoteState(state) {
@@ -398,7 +451,19 @@ function applyRemoteState(state) {
           : "RIVAL WINS";
     $("#board-hint").textContent = `${result}. ${game.player} BOXES.`;
     showResult(result, game.player, result === "YOU WIN");
-    saveScore(mine.name, game.player, game.cols, game.rows);
+    saveScore(
+      mine.name,
+      game.player,
+      game.cols,
+      game.rows,
+      rival?.name || "RIVAL",
+      result === "YOU WIN"
+        ? mine.name
+        : result === "RIVAL WINS"
+          ? rival?.name || "RIVAL"
+          : "DRAW",
+      Math.abs(game.player - game.bot),
+    );
   }
   draw();
 }
@@ -513,7 +578,8 @@ document.addEventListener("click", (event) => {
   });
   $(`#${prefix}cols`).value = button.dataset.gridSize;
   $(`#${prefix}rows`).value = button.dataset.gridSize;
-  tone(360, 0.06, "triangle", 0.1);
+  tone(360, 0.06, "triangle", 0.14);
+  setTimeout(() => tone(540, 0.035, "sine", 0.09), 28);
 });
 $("#solo-form").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -539,7 +605,7 @@ $("#join-room").addEventListener("click", joinRoom);
 canvas.addEventListener("pointermove", (event) => {
   const next = chooseHover(event);
   if (next && (!hover || id(...next) !== id(...hover)))
-    tone(470, 0.018, "sine", 0.018);
+    tone(470, 0.018, "sine", 0.035);
   hover = next;
   draw();
 });

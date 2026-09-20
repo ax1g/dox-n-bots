@@ -25,6 +25,9 @@ class Score(BaseModel):
     score: int = Field(ge=0, le=81)
     width: int = Field(ge=2, le=10)
     height: int = Field(ge=2, le=10)
+    opponent: str = Field(default="BOT", min_length=3, max_length=50)
+    winner: str = Field(default="BOT", min_length=3, max_length=50)
+    margin: int = Field(default=0, ge=0, le=81)
 
 
 class CreateRoom(BaseModel):
@@ -181,8 +184,16 @@ app.add_middleware(
 def connection():
     db = sqlite3.connect(DB)
     db.execute(
-        "CREATE TABLE IF NOT EXISTS scores (name TEXT NOT NULL, score INTEGER NOT NULL, width INTEGER NOT NULL, height INTEGER NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
+        "CREATE TABLE IF NOT EXISTS scores (name TEXT NOT NULL, score INTEGER NOT NULL, width INTEGER NOT NULL, height INTEGER NOT NULL, opponent TEXT NOT NULL DEFAULT 'BOT', winner TEXT NOT NULL DEFAULT 'BOT', margin INTEGER NOT NULL DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
     )
+    columns = {row[1] for row in db.execute("PRAGMA table_info(scores)")}
+    for name, definition in {
+        "opponent": "TEXT NOT NULL DEFAULT 'BOT'",
+        "winner": "TEXT NOT NULL DEFAULT 'BOT'",
+        "margin": "INTEGER NOT NULL DEFAULT 0",
+    }.items():
+        if name not in columns:
+            db.execute(f"ALTER TABLE scores ADD COLUMN {name} {definition}")
     return db
 
 
@@ -190,9 +201,19 @@ def connection():
 def leaderboard():
     with connection() as db:
         rows = db.execute(
-            "SELECT name, score, width, height FROM scores ORDER BY score DESC, created_at ASC LIMIT 20"
+            "SELECT name, score, width, height, opponent, winner, margin, created_at FROM scores ORDER BY CASE WHEN winner = name THEN 1 ELSE 0 END DESC, score DESC, margin DESC, created_at ASC LIMIT 20"
         ).fetchall()
-    return [dict(zip(("name", "score", "width", "height"), row)) for row in rows]
+    keys = (
+        "name",
+        "score",
+        "width",
+        "height",
+        "opponent",
+        "winner",
+        "margin",
+        "created_at",
+    )
+    return [dict(zip(keys, row)) for row in rows]
 
 
 @app.post("/api/leaderboard", status_code=201)
@@ -201,8 +222,16 @@ def add_score(score: Score):
         raise HTTPException(status_code=422, detail="Name cannot be blank")
     with connection() as db:
         db.execute(
-            "INSERT INTO scores (name, score, width, height) VALUES (?, ?, ?, ?)",
-            (score.name.strip(), score.score, score.width, score.height),
+            "INSERT INTO scores (name, score, width, height, opponent, winner, margin) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (
+                score.name.strip(),
+                score.score,
+                score.width,
+                score.height,
+                score.opponent.strip(),
+                score.winner.strip(),
+                score.margin,
+            ),
         )
     return {"ok": True}
 
