@@ -38,6 +38,9 @@
             START GAME <span>↗</span>
           </button>
         </div>
+        <div class="landing-mark" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
         <section
           class="landing-leaderboard"
           aria-labelledby="landing-scores-title"
@@ -199,11 +202,16 @@
         aria-labelledby="scores-title"
       >
         <div class="panel score-panel">
-          <p class="eyebrow">LEADERBOARD</p>
-          <h2 id="scores-title">WHO<br /><em>WON</em><br />WHAT.</h2>
-          <ol id="score-list">
-            <li>Loading scores...</li>
-          </ol>
+          <div class="score-copy">
+            <p class="eyebrow">LEADERBOARD</p>
+            <h2 id="scores-title">WHO<br /><em>WON</em><br />WHAT.</h2>
+            <p>Big wins rise to the top. Every grid tells a different story.</p>
+          </div>
+          <div class="score-table">
+            <ol id="score-list">
+              <li>Loading scores...</li>
+            </ol>
+          </div>
           <button class="text-button" data-screen="menu">BACK</button>
         </div>
       </section>
@@ -228,7 +236,11 @@
       ><li>
         <span class="rank"></span>
         <div class="match-detail">
-          <b class="score-name"></b><span class="match-result"></span>
+          <b class="score-name"></b><span class="match-result"></span
+          ><span class="match-pills"
+            ><span class="mode-pill"></span><span class="size-pill"></span
+            ><span class="detail-pill"></span
+          ></span>
         </div>
         <strong class="score-points"></strong></li
     ></template>

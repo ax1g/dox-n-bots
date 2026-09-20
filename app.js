@@ -302,6 +302,8 @@ function endLocalGame() {
         ? game.names.rival
         : "DRAW",
     Math.abs(game.player - game.bot),
+    "SOLO",
+    $("#difficulty").value.toUpperCase(),
   );
 }
 function take(edge, owner) {
@@ -361,8 +363,20 @@ async function saveScore(
   opponent = "BOT",
   winner = "BOT",
   margin = 0,
+  gameMode = "SOLO",
+  detail = "CASUAL",
 ) {
-  const payload = { name, score, width, height, opponent, winner, margin };
+  const payload = {
+    name,
+    score,
+    width,
+    height,
+    opponent,
+    winner,
+    margin,
+    mode: gameMode,
+    detail,
+  };
   const local = JSON.parse(localStorage.getItem(localKey) || "[]");
   local.push(payload);
   localStorage.setItem(localKey, JSON.stringify(local));
@@ -396,7 +410,7 @@ async function loadScores() {
       .forEach((entry, index) => {
         const row = template.content.cloneNode(true);
         const rank = row.querySelector(".rank");
-        rank.textContent = index < 3 ? "🏆" : `#${index + 1}`;
+        rank.textContent = `#${index + 1}`;
         rank.classList.toggle(`rank-${index + 1}`, index < 3);
         row.querySelector(".score-name").textContent =
           entry.score === "---"
@@ -409,7 +423,14 @@ async function loadScores() {
         row.querySelector(".match-result").textContent =
           entry.score === "---"
             ? "START THE FIRST MATCH"
-            : `${date}  ${entry.winner || entry.name} won by ${margin} box${margin === 1 ? "" : "es"}`;
+            : entry.winner === "BOT" && margin === 0
+              ? `${date}  ARCHIVED SCORE`
+              : `${date}  ${entry.winner || entry.name} won by ${margin} box${margin === 1 ? "" : "es"}`;
+        row.querySelector(".mode-pill").textContent = entry.mode || "SOLO";
+        row.querySelector(".size-pill").textContent =
+          `${entry.width || "?"}x${entry.height || "?"}`;
+        row.querySelector(".detail-pill").textContent =
+          entry.detail || "CASUAL";
         row.querySelector(".score-points").textContent =
           entry.score === "---"
             ? "---"
@@ -463,6 +484,8 @@ function applyRemoteState(state) {
           ? rival?.name || "RIVAL"
           : "DRAW",
       Math.abs(game.player - game.bot),
+      "ONLINE",
+      "FRIEND",
     );
   }
   draw();
