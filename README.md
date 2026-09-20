@@ -7,16 +7,26 @@ A tactile, browser-based take on dots and boxes. Draw lines, claim boxes, and tr
 - Custom grid width and height (2–10 dots each way)
 - Required player name (3–50 characters)
 - Noob, Casual, and God-mode bots
-- Proximity-based line preview with small Web Audio feedback
+- Shareable remote rooms with server-authoritative WebSocket moves and reconnect support
+- Fixed-screen game menu with tactile Web Audio feedback
 - Local fallback leaderboard plus a FastAPI/SQLite leaderboard API
 
 ## Run locally
 
-Serve the root folder with any static server. For the shared leaderboard:
+Run the API service for leaderboards and online rooms:
 
 ```bash
 cd backend
 uvicorn main:app --reload
 ```
 
-During local development, proxy `/api` to the FastAPI server or serve the frontend from the same origin. Without the API, scores remain available in the browser's local storage.
+Open `http://127.0.0.1:8000` after starting Uvicorn. FastAPI serves the frontend, API, and WebSocket endpoint from one origin. Without the API, solo scores remain available in browser local storage.
+
+Online rooms are held in memory and require one Uvicorn worker. They are intentionally short-lived and do not survive a service restart.
+
+## Test
+
+```bash
+cd backend
+pytest
+```
