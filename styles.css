@@ -622,6 +622,8 @@ canvas {
 .score-table {
   min-width: 0;
   overflow: auto;
+  padding-right: 1rem;
+  scrollbar-gutter: stable;
 }
 #score-list,
 #landing-scores {
