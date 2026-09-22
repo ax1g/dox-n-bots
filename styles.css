@@ -120,6 +120,45 @@ button {
 .credit:focus-visible {
   color: var(--orange);
 }
+.sound-prompt {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.7rem 0.7rem 0.7rem 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 1rem;
+  background: var(--paper);
+  box-shadow: 5px 5px 0 var(--blue);
+  transform: translateX(-50%);
+  font:
+    11px/1.4 "DM Mono",
+    monospace;
+  letter-spacing: 0.06em;
+}
+.sound-prompt[hidden] {
+  display: none;
+}
+.sound-prompt .primary {
+  padding: 0.6rem 0.9rem;
+  white-space: nowrap;
+}
+#sound-dismiss {
+  border: 0;
+  background: none;
+  padding: 0.5rem;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+}
+#sound-dismiss:hover,
+#sound-dismiss:focus-visible {
+  color: var(--red);
+}
 .screen {
   display: none;
   min-height: 0;
@@ -912,8 +951,8 @@ canvas {
 }
 @media (max-width: 720px) {
   main {
-    padding: 0 6%;
-    grid-template-rows: 64px minmax(0, 1fr);
+    padding: 0 3%;
+    grid-template-rows: 56px minmax(0, 1fr);
   }
   .masthead p {
     display: none;
@@ -946,8 +985,8 @@ canvas {
   }
   .back-button {
     position: fixed;
-    top: calc(64px + 0.6rem);
-    left: 6%;
+    top: calc(56px + 0.5rem);
+    left: 3%;
     z-index: 4;
   }
   .score-panel {

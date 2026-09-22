@@ -27,18 +27,23 @@ let lastRival = null;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const id = (a, b) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 const edgeList = () => {
-  const out = [];
-  for (let y = 0; y < game.rows; y++)
-    for (let x = 0; x < game.cols; x++) {
-      const a = y * game.cols + x;
-      if (x < game.cols - 1) out.push([a, a + 1]);
-      if (y < game.rows - 1) out.push([a, a + game.cols]);
-    }
-  return out;
+  const key = `${game.cols}x${game.rows}`;
+  if (key !== edgeCacheKey) {
+    edgeCacheKey = key;
+    edgeCache = [];
+    for (let y = 0; y < game.rows; y++)
+      for (let x = 0; x < game.cols; x++) {
+        const a = y * game.cols + x;
+        if (x < game.cols - 1) edgeCache.push([a, a + 1]);
+        if (y < game.rows - 1) edgeCache.push([a, a + game.cols]);
+      }
+  }
+  return edgeCache;
 };
 const tone = (frequency, duration = 0.045, type = "sine", volume = 0.13) => {
   if (!sound) return;
   audio ??= new AudioContext();
+  if (audio.state === "suspended") audio.resume().catch(() => {});
   const oscillator = audio.createOscillator();
   const gain = audio.createGain();
   oscillator.type = type;
@@ -87,7 +92,23 @@ function showScreen(name) {
     .querySelectorAll(".screen")
     .forEach((screen) => screen.classList.toggle("active", screen.id === name));
   if (name === "scores") loadScores();
-  if (name === "game") requestAnimationFrame(draw);
+  if (name === "game") {
+    let last = "";
+    let stable = 0;
+    let frames = 0;
+    const settle = () => {
+      const rect = canvas.getBoundingClientRect();
+      const key = `${Math.round(rect.width)}x${Math.round(rect.height)}`;
+      draw();
+      if (key === last) stable++;
+      else {
+        last = key;
+        stable = 0;
+      }
+      if (stable < 2 && ++frames < 30) requestAnimationFrame(settle);
+    };
+    requestAnimationFrame(settle);
+  }
   if (name !== "game") {
     leftRoom = true;
     clearTimeout(reconnectTimer);
@@ -159,19 +180,31 @@ function createGame(cols, rows, names = { player: "YOU", rival: "BOT" }) {
 function dot(index) {
   return { x: index % game.cols, y: Math.floor(index / game.cols) };
 }
+let edgeCacheKey = "";
+let edgeCache = [];
 function geometry() {
   const rect = canvas.getBoundingClientRect();
   const ratio = devicePixelRatio || 1;
-  canvas.width = rect.width * ratio;
-  canvas.height = rect.height * ratio;
+  const w = Math.max(1, Math.round(rect.width));
+  const h = Math.max(1, Math.round(rect.height));
+  if (
+    canvas.width !== Math.round(w * ratio) ||
+    canvas.height !== Math.round(h * ratio)
+  ) {
+    canvas.width = Math.round(w * ratio);
+    canvas.height = Math.round(h * ratio);
+  }
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  const pad = Math.max(16, Math.min(rect.width, rect.height) * 0.06);
+  return layoutFor(w, h);
+}
+function layoutFor(w, h) {
+  const pad = Math.max(16, Math.min(w, h) * 0.06);
   return {
-    w: rect.width,
-    h: rect.height,
+    w,
+    h,
     pad,
-    sx: (rect.width - pad * 2) / (game.cols - 1),
-    sy: (rect.height - pad * 2) / (game.rows - 1),
+    sx: (w - pad * 2) / (game.cols - 1),
+    sy: (h - pad * 2) / (game.rows - 1),
     ox: pad,
     oy: pad,
   };
@@ -293,7 +326,10 @@ function chooseHover(event) {
   if (!game || game.finished || !game.playerTurn || game.status !== "active")
     return null;
   const rect = canvas.getBoundingClientRect();
-  const layout = geometry();
+  const layout = layoutFor(
+    Math.max(1, Math.round(rect.width)),
+    Math.max(1, Math.round(rect.height)),
+  );
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
   let closest = null;
@@ -835,8 +871,28 @@ $("#theme").addEventListener("click", () => {
   tone(330, 0.08, "triangle", 0.1);
 });
 window.addEventListener("resize", draw);
+new ResizeObserver(() => draw()).observe(canvas);
 setTheme(localStorage.getItem(themeKey) === "dark");
 loadScores();
+const soundPromptKey = "dox-n-bots-sound-prompt";
+if (!localStorage.getItem(soundPromptKey))
+  $("#sound-prompt").hidden = false;
+$("#sound-enable").addEventListener("click", () => {
+  try {
+    audio ??= new AudioContext();
+    audio.resume?.().catch(() => {});
+  } catch {}
+  sound = true;
+  $("#sound").textContent = "SOUND: ON";
+  $("#sound").setAttribute("aria-pressed", "true");
+  localStorage.setItem(soundPromptKey, "enabled");
+  $("#sound-prompt").hidden = true;
+  tone(520, 0.08, "triangle", 0.12);
+});
+$("#sound-dismiss").addEventListener("click", () => {
+  localStorage.setItem(soundPromptKey, "dismissed");
+  $("#sound-prompt").hidden = true;
+});
 {
   const invited = new URLSearchParams(location.search).get("room");
   if (invited) {
