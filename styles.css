@@ -834,6 +834,7 @@ canvas {
 .match-detail {
   display: grid;
   gap: 0.2rem;
+  min-width: 0;
 }
 .score-name {
   font-size: 1rem;
@@ -1062,6 +1063,70 @@ canvas {
   }
   .game-actions {
     padding-top: 0.3rem;
+  }
+}
+@media (max-width: 400px) {
+  .masthead {
+    gap: 0.6rem;
+  }
+  .brand {
+    font-size: 1.8rem;
+  }
+  .credit {
+    display: none;
+  }
+  .header-actions {
+    gap: 0.5rem;
+  }
+  .masthead button {
+    font-size: 10px;
+  }
+  .landing {
+    padding: 1rem 0;
+  }
+  .landing h1 {
+    font-size: clamp(3rem, 17vw, 6.5rem);
+  }
+  .landing p:not(.eyebrow) {
+    margin: 1.2rem 0;
+    font-size: 1rem;
+  }
+  .huge {
+    min-width: 0;
+    width: 100%;
+  }
+  .panel {
+    padding: 1rem;
+  }
+  .setup h2,
+  .menu-panel h2 {
+    font-size: clamp(2.6rem, 14vw, 5rem);
+  }
+  .menu-panel .primary,
+  .menu-panel .secondary {
+    min-height: 3.75rem;
+    font-size: 1.05rem;
+  }
+  #score-list {
+    min-width: 0;
+  }
+  #score-list li,
+  #landing-scores li {
+    grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+    gap: 0.6rem;
+    padding: 0.8rem 0;
+  }
+  .score-points {
+    font-size: 1.2rem;
+  }
+  .result-card {
+    padding: 1.5rem;
+  }
+  .sound-prompt {
+    bottom: 0.75rem;
+    gap: 0.5rem;
+    padding: 0.6rem;
+    font-size: 10px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
