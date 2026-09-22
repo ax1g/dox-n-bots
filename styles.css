@@ -117,13 +117,13 @@ button {
   display: grid;
 }
 .landing {
-  grid-template-columns: minmax(18rem, 1fr) minmax(10rem, 0.48fr) minmax(
-      18rem,
-      0.9fr
-    );
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.48fr) minmax(0, 0.9fr);
   align-items: center;
   gap: clamp(1rem, 3vw, 3rem);
   padding: clamp(1.5rem, 5vh, 4rem) 0;
+}
+.landing > * {
+  min-width: 0;
 }
 .eyebrow {
   margin: 0 0 1.2rem;
@@ -159,7 +159,8 @@ button {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12%;
-  width: min(32vw, 430px);
+  width: 100%;
+  max-width: 400px;
   justify-self: center;
   transform: rotate(-8deg);
 }
@@ -336,10 +337,10 @@ button {
   border-radius: 1.25rem;
   box-shadow: 10px 10px 0 var(--red);
 }
-.modal-back {
+.back-button {
   position: absolute;
   top: -1.25rem;
-  right: 1.25rem;
+  left: 1.25rem;
   z-index: 1;
   display: grid;
   width: 3rem;
@@ -358,13 +359,13 @@ button {
     background 0.12s,
     box-shadow 0.12s;
 }
-.modal-back:hover,
-.modal-back:focus-visible {
+.back-button:hover,
+.back-button:focus-visible {
   background: var(--blue);
   transform: translate(-2px, -2px) rotate(-8deg);
   box-shadow: 5px 5px 0 var(--ink);
 }
-.modal-back:active {
+.back-button:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 var(--ink);
 }
@@ -532,6 +533,7 @@ button {
   padding: clamp(0.8rem, 2vw, 1.5rem) 0;
 }
 .board-wrap {
+  position: relative;
   width: min(100%, 980px);
   height: 100%;
   min-height: 0;
