@@ -30,6 +30,7 @@ class Score(BaseModel):
     margin: int = Field(default=0, ge=0, le=81)
     mode: str = Field(default="SOLO", min_length=3, max_length=20)
     detail: str = Field(default="CASUAL", min_length=3, max_length=20)
+    match_id: str = Field(default="", max_length=64)
 
 
 class CreateRoom(BaseModel):
@@ -195,6 +196,7 @@ def connection():
         "margin": "INTEGER NOT NULL DEFAULT 0",
         "mode": "TEXT NOT NULL DEFAULT 'SOLO'",
         "detail": "TEXT NOT NULL DEFAULT 'CASUAL'",
+        "match_id": "TEXT NOT NULL DEFAULT ''",
     }.items():
         if name not in columns:
             db.execute(f"ALTER TABLE scores ADD COLUMN {name} {definition}")
@@ -205,7 +207,7 @@ def connection():
 def leaderboard():
     with connection() as db:
         rows = db.execute(
-            "SELECT name, score, width, height, opponent, winner, margin, mode, detail, created_at FROM scores ORDER BY CASE WHEN winner = name THEN 1 ELSE 0 END DESC, score DESC, margin DESC, created_at ASC LIMIT 20"
+            "SELECT name, score, width, height, opponent, winner, margin, mode, detail, created_at, match_id FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY CASE WHEN match_id = '' THEN 'legacy-' || rowid ELSE match_id END ORDER BY CASE WHEN winner = name THEN 0 ELSE 1 END, score DESC, rowid ASC) AS rn FROM scores) WHERE rn = 1 ORDER BY CASE WHEN winner = name THEN 1 ELSE 0 END DESC, score DESC, margin DESC, created_at ASC LIMIT 20"
         ).fetchall()
     keys = (
         "name",
@@ -218,6 +220,7 @@ def leaderboard():
         "mode",
         "detail",
         "created_at",
+        "match_id",
     )
     return [dict(zip(keys, row)) for row in rows]
 
@@ -228,7 +231,7 @@ def add_score(score: Score):
         raise HTTPException(status_code=422, detail="Name cannot be blank")
     with connection() as db:
         db.execute(
-            "INSERT INTO scores (name, score, width, height, opponent, winner, margin, mode, detail) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO scores (name, score, width, height, opponent, winner, margin, mode, detail, match_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 score.name.strip(),
                 score.score,
@@ -239,6 +242,7 @@ def add_score(score: Score):
                 score.margin,
                 score.mode.strip(),
                 score.detail.strip(),
+                score.match_id.strip(),
             ),
         )
     return {"ok": True}

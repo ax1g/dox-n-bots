@@ -20,6 +20,7 @@ let lastServerMessage = 0;
 let reportedResult = false;
 let pendingEdge = null;
 let syncedRoom = null;
+let soloMatchId = "";
 let lastMine = null;
 let lastRival = null;
 
@@ -346,6 +347,7 @@ function endLocalGame() {
     Math.abs(game.player - game.bot),
     "SOLO",
     $("#difficulty").value.toUpperCase(),
+    soloMatchId,
   );
 }
 function take(edge, owner) {
@@ -409,6 +411,7 @@ async function saveScore(
   margin = 0,
   gameMode = "SOLO",
   detail = "CASUAL",
+  matchId = "",
 ) {
   const payload = {
     name,
@@ -420,6 +423,7 @@ async function saveScore(
     margin,
     mode: gameMode,
     detail,
+    match_id: matchId,
   };
   const local = JSON.parse(localStorage.getItem(localKey) || "[]");
   local.push(payload);
@@ -439,7 +443,14 @@ async function loadScores() {
     if (!response.ok) throw Error();
     scores = await response.json();
   } catch {
+    const seen = new Set();
     scores = JSON.parse(localStorage.getItem(localKey) || "[]")
+      .filter((entry) => {
+        const key = entry.match_id || `local-${entry.name}-${entry.score}-${entry.created_at}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
       .sort((a, b) => b.score - a.score)
       .slice(0, 10);
   }
@@ -557,6 +568,7 @@ function applyRemoteState(state) {
       Math.abs(game.player - game.bot),
       "ONLINE",
       "FRIEND",
+      roomId,
     );
   }
   draw();
@@ -745,6 +757,7 @@ $("#solo-form").addEventListener("submit", (event) => {
   mode = "solo";
   game = createGame(cols, rows, { player: name.toUpperCase(), rival: "BOT" });
   reportedResult = false;
+  soloMatchId = crypto.randomUUID();
   lastMine = null;
   lastRival = null;
   hideResult();
