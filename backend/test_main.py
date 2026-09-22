@@ -21,6 +21,32 @@ def test_completing_box_keeps_the_turn():
     assert completed_boxes(game, 3, 4) == ["0:0"]
 
 
+def test_leaderboard_lists_each_match_once():
+    rooms.clear()
+    with TestClient(app) as client:
+        for name, score, winner in (("Alpha", 8, "Alpha"), ("Bravo", 3, "Alpha")):
+            response = client.post(
+                "/api/leaderboard",
+                json={
+                    "name": name,
+                    "score": score,
+                    "width": 5,
+                    "height": 5,
+                    "opponent": "Bravo" if name == "Alpha" else "Alpha",
+                    "winner": winner,
+                    "margin": 5,
+                    "mode": "ONLINE",
+                    "detail": "FRIEND",
+                    "match_id": "ROOM42",
+                },
+            )
+            assert response.status_code == 201
+        rows = client.get("/api/leaderboard").json()
+        match_rows = [row for row in rows if row["match_id"] == "ROOM42"]
+        assert len(match_rows) == 1
+        assert match_rows[0]["name"] == "Alpha"
+
+
 def test_room_create_join_and_full_room_rejection():
     rooms.clear()
     with TestClient(app) as client:
