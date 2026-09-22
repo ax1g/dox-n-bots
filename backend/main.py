@@ -11,7 +11,11 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from migrate import migrate
+
+try:
+    from migrate import migrate
+except ImportError:
+    from backend.migrate import migrate
 from pydantic import BaseModel, Field
 
 DB = Path(__file__).with_name("leaderboard.db")
