@@ -264,16 +264,6 @@ button {
     6px 6px 0 var(--ink);
   animation: start-glow 1.8s ease-in-out infinite;
 }
-.landing .huge::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 6px;
-  border: 2px solid color-mix(in srgb, var(--blue) 65%, transparent);
-  border-radius: 0.65rem;
-  pointer-events: none;
-  animation: start-ring 1.8s ease-out infinite;
-}
 .landing .huge::after {
   content: "";
   position: absolute;
@@ -307,13 +297,6 @@ button {
       0 0 0 7px color-mix(in srgb, var(--blue) 18%, transparent),
       0 0 38px color-mix(in srgb, var(--blue) 95%, transparent),
       6px 6px 0 var(--ink);
-  }
-}
-@keyframes start-ring {
-  70%,
-  100% {
-    opacity: 0;
-    transform: scale(1.06);
   }
 }
 @keyframes start-shine {
@@ -539,7 +522,7 @@ button {
   min-height: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto auto;
-  padding: 1.25rem;
+  padding: 2.25rem 1.25rem 1.25rem;
   border: 2px solid var(--ink);
   background: var(--paper);
   border-radius: 1.25rem;
@@ -582,7 +565,7 @@ canvas {
   height: 100%;
   min-height: 0;
   background: var(--field);
-  cursor: crosshair;
+  cursor: pointer;
   touch-action: none;
   border: 2px dashed color-mix(in srgb, var(--ink) 35%, transparent);
   border-radius: 0.75rem;
@@ -625,6 +608,7 @@ canvas {
 }
 .score-table {
   min-width: 0;
+  min-height: 0;
   overflow: auto;
   padding-right: 1rem;
   scrollbar-gutter: stable;
@@ -652,7 +636,6 @@ canvas {
   margin: 1.5rem 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--ink);
 }
 #score-list {
   min-width: 620px;
@@ -925,7 +908,7 @@ canvas {
     flex: 1;
   }
   .board-wrap {
-    padding: 0.8rem;
+    padding: 2.25rem 0.8rem 0.8rem;
   }
   .board-hint {
     display: none;
@@ -936,7 +919,6 @@ canvas {
 }
 @media (prefers-reduced-motion: reduce) {
   .landing .huge,
-  .landing .huge::before,
   .landing .huge::after {
     animation: none;
   }

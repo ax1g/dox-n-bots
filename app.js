@@ -18,6 +18,8 @@ let reconnectTimer = null;
 let heartbeatTimer = null;
 let lastServerMessage = 0;
 let reportedResult = false;
+let pendingEdge = null;
+let syncedRoom = null;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const id = (a, b) => (a < b ? `${a}:${b}` : `${b}:${a}`);
@@ -44,23 +46,25 @@ const tone = (frequency, duration = 0.045, type = "sine", volume = 0.13) => {
   oscillator.start();
   oscillator.stop(audio.currentTime + duration);
 };
-const COINS = "sounds/liecio-collect-points-190037.mp3";
 const CLAIM = "sounds/mixkit-arcade-rising-231.wav";
 const WIN = "sounds/mixkit-game-level-completed-2059.wav";
 const GAME_OVER = "sounds/alphix-game-over-417465.mp3";
 const samples = {};
-const sample = (file, volume = 0.5) => {
+const sample = (file, volume = 0.5, rate = 1) => {
   if (!sound) return;
   try {
     const el = (samples[file] ??= new Audio(file));
     el.volume = volume;
+    el.playbackRate = rate;
     el.currentTime = 0;
     el.play().catch(() => {});
   } catch {}
 };
 const clickSound = () => {
-  sample(COINS, 0.35);
+  tone(520, 0.03, "sine", 0.06);
 };
+const drawSound = (mine) => tone(mine ? 660 : 420, 0.05, "triangle", 0.12);
+const claimSound = (mine) => sample(CLAIM, 0.5, mine ? 1 : 0.7);
 const color = (name) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
@@ -335,8 +339,8 @@ function take(edge, owner) {
   won.forEach(([x, y]) => game.boxes.set(`${x}:${y}`, owner));
   if (owner === "player") game.player += won.length;
   else game.bot += won.length;
-  if (won.length) sample(CLAIM, 0.5);
-  else sample(COINS, 0.4);
+  if (won.length) claimSound(owner === "player");
+  else drawSound(owner === "player");
   if (!won.length) game.playerTurn = !game.playerTurn;
   if (game.boxes.size === (game.cols - 1) * (game.rows - 1)) {
     game.finished = true;
@@ -464,6 +468,7 @@ function applyRemoteState(state) {
   const mine = state.players[seat];
   const rivalSeat = seat === "p1" ? "p2" : "p1";
   const rival = state.players[rivalSeat];
+  const prev = game;
   game = {
     cols: state.cols,
     rows: state.rows,
@@ -476,6 +481,22 @@ function applyRemoteState(state) {
     status: state.status,
     names: { player: mine.name, rival: rival?.name || "WAITING" },
   };
+  if (mode === "online" && prev && syncedRoom === roomId && !game.finished) {
+    const fresh = [...game.edges].filter((edge) => !prev.edges.has(edge));
+    const claimed = game.boxes.size > prev.boxes.size;
+    const echoIndex = pendingEdge ? fresh.indexOf(pendingEdge) : -1;
+    if (echoIndex >= 0) {
+      if (claimed) claimSound(true);
+      else drawSound(true);
+      pendingEdge = null;
+      fresh.splice(echoIndex, 1);
+    }
+    if (fresh.length) {
+      if (claimed) claimSound(false);
+      else drawSound(false);
+    }
+  }
+  syncedRoom = roomId;
   $("#board-hint").textContent =
     state.status === "waiting"
       ? `ROOM ${roomId}: WAITING FOR RIVAL`
@@ -593,6 +614,8 @@ async function createRoom(event) {
     seat = room.seat;
     mode = "online";
     reportedResult = false;
+    pendingEdge = null;
+    syncedRoom = null;
     $("#room-code").value = roomId;
     $("#copy-room").hidden = false;
     $("#board-hint").textContent =
@@ -629,6 +652,8 @@ async function joinRoom() {
     seat = room.seat;
     mode = "online";
     reportedResult = false;
+    pendingEdge = null;
+    syncedRoom = null;
     history.replaceState(null, "", location.pathname);
     $("#copy-room").hidden = true;
     showScreen("game");
@@ -699,9 +724,10 @@ canvas.addEventListener("pointerleave", () => {
 });
 const placeEdge = (edge) => {
   if (!edge || !game?.playerTurn) return;
-  if (mode === "online")
+  if (mode === "online") {
+    pendingEdge = id(...edge);
     socket?.send(JSON.stringify({ type: "move", edge }));
-  else take(edge, "player");
+  } else take(edge, "player");
 };
 canvas.addEventListener("pointerdown", (event) => {
   event.preventDefault();
