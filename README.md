@@ -2,6 +2,16 @@
 
 A tactile, browser-based take on dots and boxes. Draw lines, claim boxes, and try not to hand the bot a chain.
 
+![Dox 'n Bots landing screen](./landing.png)
+
+![Dox 'n Bots gameplay vs bot](./game.png)
+
+## Why I built this
+
+This is a nostalgia-driven fun project. Back in school, my mates and I used to play the classic dots and boxes game on the last pages of our notebooks — rows of dots, taking turns drawing one line at a time, fighting over who gets to close the box and scribble their initial inside.
+
+I built Dox 'n Bots to bring that exact feeling back: pick a rival, build a grid, and turn every last edge into a decision.
+
 ## MVP
 
 - Custom grid width and height (2–10 dots each way)
