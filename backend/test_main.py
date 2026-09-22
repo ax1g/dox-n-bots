@@ -39,6 +39,46 @@ def test_room_create_join_and_full_room_rejection():
         assert full.status_code == 409
 
 
+def test_websocket_answers_ping_without_error():
+    rooms.clear()
+    with TestClient(app) as client:
+        created = client.post(
+            "/api/rooms", json={"name": "Alpha", "cols": 3, "rows": 3}
+        ).json()
+        with client.websocket_connect(
+            f"/ws/rooms/{created['room_id']}?token={created['token']}"
+        ) as first:
+            first.receive_json()
+            first.send_json({"type": "ping"})
+            assert first.receive_json() == {"type": "pong"}
+            first.send_json({"type": "pong"})
+
+
+def test_websocket_reconnect_with_same_token_resumes_match():
+    rooms.clear()
+    with TestClient(app) as client:
+        created = client.post(
+            "/api/rooms", json={"name": "Alpha", "cols": 3, "rows": 3}
+        ).json()
+        joined = client.post(
+            f"/api/rooms/{created['room_id']}/join", json={"name": "Bravo"}
+        ).json()
+        with client.websocket_connect(
+            f"/ws/rooms/{created['room_id']}?token={created['token']}"
+        ) as first:
+            first.receive_json()
+            with client.websocket_connect(
+                f"/ws/rooms/{created['room_id']}?token={joined['token']}"
+            ):
+                pass
+        with client.websocket_connect(
+            f"/ws/rooms/{created['room_id']}?token={created['token']}"
+        ) as first:
+            state = first.receive_json()
+            assert state["type"] == "state"
+            assert state["players"]["p1"]["connected"] is True
+
+
 def test_websocket_rejects_out_of_turn_move():
     rooms.clear()
     with TestClient(app) as client:
