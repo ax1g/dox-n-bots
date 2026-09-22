@@ -249,17 +249,17 @@
         aria-label="Dox 'n Bots game"
       >
         <section class="board-wrap">
-          <button
-            class="back-button"
-            data-screen="menu"
-            aria-label="Leave match"
-          >
-            ←
-          </button>
           <div class="scorebar">
-            <span id="player-score">YOU <b>0</b></span
-            ><strong id="turn">READY?</strong
-            ><span id="bot-score">RIVAL <b>0</b></span>
+            <div class="turnline">
+              <strong id="turn">READY?</strong>
+              <button class="text-button exit-button" data-screen="menu">
+                EXIT GAME
+              </button>
+            </div>
+            <div class="scoreline">
+              <span id="player-score">YOU <b>0</b></span
+              ><span id="bot-score">RIVAL <b>0</b></span>
+            </div>
           </div>
           <p class="room-notice" id="room-notice" hidden></p>
           <canvas id="board" aria-label="Dots and boxes board"></canvas>
