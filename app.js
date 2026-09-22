@@ -20,6 +20,8 @@ let lastServerMessage = 0;
 let reportedResult = false;
 let pendingEdge = null;
 let syncedRoom = null;
+let lastMine = null;
+let lastRival = null;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const id = (a, b) => (a < b ? `${a}:${b}` : `${b}:${a}`);
@@ -64,7 +66,10 @@ const clickSound = () => {
   tone(520, 0.03, "sine", 0.06);
 };
 const drawSound = (mine) => tone(mine ? 660 : 420, 0.05, "triangle", 0.12);
-const claimSound = (mine) => sample(CLAIM, 0.5, mine ? 1 : 0.7);
+const claimSound = (mine) => {
+  tone(mine ? 780 : 540, 0.07, "triangle", 0.14);
+  setTimeout(() => tone(mine ? 990 : 680, 0.06, "sine", 0.1), 45);
+};
 const color = (name) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
@@ -159,19 +164,25 @@ function geometry() {
   canvas.height = rect.height * ratio;
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   const pad = Math.max(24, Math.min(rect.width, rect.height) * 0.09);
+  const cell = Math.min(
+    (rect.width - pad * 2) / (game.cols - 1),
+    (rect.height - pad * 2) / (game.rows - 1),
+  );
   return {
     w: rect.width,
     h: rect.height,
     pad,
-    sx: (rect.width - pad * 2) / (game.cols - 1),
-    sy: (rect.height - pad * 2) / (game.rows - 1),
+    sx: cell,
+    sy: cell,
+    ox: (rect.width - cell * (game.cols - 1)) / 2,
+    oy: (rect.height - cell * (game.rows - 1)) / 2,
   };
 }
 function point(index, layout) {
   const position = dot(index);
   return {
-    x: layout.pad + position.x * layout.sx,
-    y: layout.pad + position.y * layout.sy,
+    x: layout.ox + position.x * layout.sx,
+    y: layout.oy + position.y * layout.sy,
   };
 }
 function boxEdges(x, y) {
@@ -215,8 +226,8 @@ function draw() {
         ? color("--claimed-player")
         : color("--claimed-rival");
     ctx.fillRect(
-      layout.pad + x * layout.sx + 4,
-      layout.pad + y * layout.sy + 4,
+      layout.ox + x * layout.sx + 4,
+      layout.oy + y * layout.sy + 4,
       layout.sx - 8,
       layout.sy - 8,
     );
@@ -230,8 +241,8 @@ function draw() {
     ctx.textBaseline = "middle";
     ctx.fillText(
       claimer.slice(0, 8).toUpperCase(),
-      layout.pad + (x + 0.5) * layout.sx,
-      layout.pad + (y + 0.5) * layout.sy,
+      layout.ox + (x + 0.5) * layout.sx,
+      layout.oy + (y + 0.5) * layout.sy,
       layout.sx - 12,
     );
   }
@@ -250,6 +261,10 @@ function draw() {
   edgeList().forEach((edge) => {
     if (game.edges.has(id(...edge))) line(edge, color("--ink"), 5);
   });
+  if (lastRival && game.edges.has(id(...lastRival)))
+    line(lastRival, color("--claimed-rival"), 6);
+  if (lastMine && game.edges.has(id(...lastMine)))
+    line(lastMine, color("--claimed-player"), 6);
   if (hover && !game.edges.has(id(...hover))) line(hover, color("--hover"), 6);
   for (let index = 0; index < game.cols * game.rows; index++) {
     const p = point(index, layout);
@@ -271,6 +286,9 @@ function draw() {
         : mode === "online"
           ? "RIVAL TURN"
           : "BOT THINKING";
+  const wrap = document.querySelector(".board-wrap");
+  wrap.classList.toggle("turn-mine", !game.finished && game.playerTurn);
+  wrap.classList.toggle("turn-rival", !game.finished && !game.playerTurn);
 }
 
 function chooseHover(event) {
@@ -337,8 +355,13 @@ function take(edge, owner) {
   game.edges.add(id(...edge));
   const won = completed(edge);
   won.forEach(([x, y]) => game.boxes.set(`${x}:${y}`, owner));
-  if (owner === "player") game.player += won.length;
-  else game.bot += won.length;
+  if (owner === "player") {
+    game.player += won.length;
+    lastMine = edge;
+  } else {
+    game.bot += won.length;
+    lastRival = edge;
+  }
   if (won.length) claimSound(owner === "player");
   else drawSound(owner === "player");
   if (!won.length) game.playerTurn = !game.playerTurn;
@@ -486,12 +509,12 @@ function applyRemoteState(state) {
     const claimed = game.boxes.size > prev.boxes.size;
     const echoIndex = pendingEdge ? fresh.indexOf(pendingEdge) : -1;
     if (echoIndex >= 0) {
-      if (claimed) claimSound(true);
-      else drawSound(true);
+      lastMine = fresh[echoIndex].split(":").map(Number);
       pendingEdge = null;
       fresh.splice(echoIndex, 1);
     }
     if (fresh.length) {
+      lastRival = fresh[fresh.length - 1].split(":").map(Number);
       if (claimed) claimSound(false);
       else drawSound(false);
     }
@@ -702,6 +725,8 @@ $("#solo-form").addEventListener("submit", (event) => {
   mode = "solo";
   game = createGame(cols, rows, { player: name.toUpperCase(), rival: "BOT" });
   reportedResult = false;
+  lastMine = null;
+  lastRival = null;
   hideResult();
   $("#board-hint").textContent =
     `VS ${$("#difficulty").value.toUpperCase()} BOT`;
@@ -723,9 +748,17 @@ canvas.addEventListener("pointerleave", () => {
   draw();
 });
 const placeEdge = (edge) => {
-  if (!edge || !game?.playerTurn) return;
+  if (!game || game.finished || game.status !== "active") return;
+  if (!edge) return;
+  if (!game.playerTurn) {
+    $("#board-hint").textContent =
+      `NOT YOUR TURN - WAIT FOR ${game.names.rival}.`;
+    tone(140, 0.1, "sawtooth", 0.08);
+    return;
+  }
   if (mode === "online") {
     pendingEdge = id(...edge);
+    drawSound(true);
     socket?.send(JSON.stringify({ type: "move", edge }));
   } else take(edge, "player");
 };

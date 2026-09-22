@@ -538,6 +538,17 @@ button {
   background: var(--paper);
   border-radius: 1.25rem;
   box-shadow: 8px 8px 0 var(--blue);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.board-wrap.turn-mine {
+  border-color: var(--blue);
+  box-shadow: 8px 8px 0 var(--blue);
+}
+.board-wrap.turn-rival {
+  border-color: var(--red);
+  box-shadow: 8px 8px 0 var(--red);
 }
 .scorebar {
   display: flex;
@@ -919,7 +930,13 @@ canvas {
     flex: 1;
   }
   .board-wrap {
-    padding: 2.25rem 0.8rem 0.8rem;
+    padding: 2rem 0.5rem 0.5rem;
+  }
+  .scorebar {
+    padding-bottom: 0.4rem;
+  }
+  .game-screen {
+    padding: 0.4rem 0;
   }
   .board-hint {
     display: none;
