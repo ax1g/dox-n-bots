@@ -23,6 +23,7 @@ let syncedRoom = null;
 let soloMatchId = "";
 let lastMine = null;
 let lastRival = null;
+let drawFrame = 0;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const id = (a, b) => (a < b ? `${a}:${b}` : `${b}:${a}`);
@@ -247,6 +248,14 @@ function completed(edge) {
 }
 
 function draw() {
+  if (drawFrame) return;
+  drawFrame = requestAnimationFrame(() => {
+    drawFrame = 0;
+    render();
+  });
+}
+
+function render() {
   if (!game || !$("#game").classList.contains("active")) return;
   const layout = geometry();
   ctx.clearRect(0, 0, layout.w, layout.h);
@@ -822,12 +831,16 @@ $("#tab-join").addEventListener("click", () => {
 });
 canvas.addEventListener("pointermove", (event) => {
   const next = chooseHover(event);
-  if (next && (!hover || id(...next) !== id(...hover)))
+  const nextId = next && id(...next);
+  const currentId = hover && id(...hover);
+  if (nextId === currentId) return;
+  if (next)
     tone(470, 0.018, "sine", 0.035);
   hover = next;
   draw();
 });
 canvas.addEventListener("pointerleave", () => {
+  if (!hover) return;
   hover = null;
   draw();
 });
