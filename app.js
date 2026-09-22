@@ -11,6 +11,12 @@ let mode = null;
 let socket;
 let seat;
 let roomId;
+let roomToken = null;
+let leftRoom = false;
+let reconnectAttempts = 0;
+let reconnectTimer = null;
+let heartbeatTimer = null;
+let lastServerMessage = 0;
 let reportedResult = false;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -60,9 +66,14 @@ function showScreen(name) {
     .forEach((screen) => screen.classList.toggle("active", screen.id === name));
   if (name === "scores") loadScores();
   if (name === "game") requestAnimationFrame(draw);
-  if (name !== "game" && socket) {
-    socket.close();
-    socket = null;
+  if (name !== "game") {
+    leftRoom = true;
+    clearTimeout(reconnectTimer);
+    clearInterval(heartbeatTimer);
+    if (socket) {
+      socket.close();
+      socket = null;
+    }
   }
   if (name !== "game") hideResult();
 }
@@ -490,29 +501,63 @@ function applyRemoteState(state) {
   }
   draw();
 }
-function connectRoom(token) {
-  sessionStorage.setItem("dox-room", JSON.stringify({ roomId, seat, token }));
+function inviteLink() {
+  return `${location.origin}${location.pathname}?room=${roomId}`;
+}
+function scheduleReconnect() {
+  if (leftRoom || game?.finished || mode !== "online") return;
+  if (!$("#game").classList.contains("active")) return;
+  if (reconnectAttempts >= 10) {
+    $("#board-hint").textContent =
+      "CONNECTION LOST. LEAVE AND REJOIN WITH YOUR INVITE LINK.";
+    return;
+  }
+  const delay = Math.min(1000 * 2 ** reconnectAttempts, 10000);
+  reconnectAttempts++;
+  $("#board-hint").textContent = "RECONNECTING...";
+  clearTimeout(reconnectTimer);
+  reconnectTimer = setTimeout(() => {
+    if (!leftRoom) connectRoom(roomToken, true);
+  }, delay);
+}
+function connectRoom(token, retry = false) {
+  roomToken = token;
+  leftRoom = false;
+  if (!retry) {
+    reconnectAttempts = 0;
+    sessionStorage.setItem("dox-room", JSON.stringify({ roomId, seat, token }));
+  }
+  clearTimeout(reconnectTimer);
+  clearInterval(heartbeatTimer);
   const scheme = location.protocol === "https:" ? "wss" : "ws";
   socket = new WebSocket(
     `${scheme}://${location.host}/ws/rooms/${roomId}?token=${encodeURIComponent(token)}`,
   );
+  socket.addEventListener("open", () => {
+    reconnectAttempts = 0;
+    lastServerMessage = Date.now();
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = setInterval(() => {
+      if (socket?.readyState !== WebSocket.OPEN) return;
+      if (Date.now() - lastServerMessage > 40000) socket.close();
+      else socket.send(JSON.stringify({ type: "ping" }));
+    }, 20000);
+  });
   socket.addEventListener("message", (event) => {
+    lastServerMessage = Date.now();
     const message = JSON.parse(event.data);
     if (message.type === "state") applyRemoteState(message);
-    if (message.type === "error") {
+    else if (message.type === "pong") return;
+    else if (message.type === "error") {
       $("#board-hint").textContent = message.message;
       tone(110, 0.12, "sawtooth");
     }
   });
-  socket.addEventListener("close", () => {
-    if ($("#game").classList.contains("active") && !game?.finished) {
-      $("#board-hint").textContent =
-        "CONNECTION CLOSED. RETURN TO MENU TO RETRY.";
-      if (game) {
-        game.status = "disconnected";
-        draw();
-      }
-    }
+  socket.addEventListener("close", (event) => {
+    clearInterval(heartbeatTimer);
+    socket = null;
+    if (leftRoom || game?.finished || event.code === 1008) return;
+    scheduleReconnect();
   });
 }
 async function createRoom(event) {
@@ -537,9 +582,12 @@ async function createRoom(event) {
     const room = await response.json();
     roomId = room.room_id;
     seat = room.seat;
+    mode = "online";
     reportedResult = false;
     $("#room-code").value = roomId;
     $("#copy-room").hidden = false;
+    $("#board-hint").textContent =
+      `ROOM ${roomId}: SHARE YOUR INVITE LINK, THEN WAIT.`;
     showScreen("game");
     connectRoom(room.token);
   } catch {
@@ -549,7 +597,9 @@ async function createRoom(event) {
 }
 async function joinRoom() {
   const name = $("#online-name").value.trim();
-  const code = $("#room-code").value.trim().toUpperCase();
+  let code = $("#room-code").value.trim().toUpperCase();
+  const linkMatch = code.match(/ROOM=([A-Z0-9]+)/);
+  if (linkMatch) code = linkMatch[1];
   if (name.length < 3 || !code) {
     $("#online-message").textContent = "ENTER YOUR NAME AND A ROOM CODE.";
     tone(110, 0.12, "sawtooth");
@@ -568,8 +618,10 @@ async function joinRoom() {
     const room = await response.json();
     roomId = room.room_id;
     seat = room.seat;
+    mode = "online";
     reportedResult = false;
-    $("#copy-room").hidden = false;
+    history.replaceState(null, "", location.pathname);
+    $("#copy-room").hidden = true;
     showScreen("game");
     connectRoom(room.token);
   } catch {
@@ -644,11 +696,11 @@ canvas.addEventListener("pointerdown", () => {
 });
 $("#copy-room").addEventListener("click", async () => {
   try {
-    await navigator.clipboard.writeText(roomId);
-    $("#board-hint").textContent = `ROOM CODE ${roomId} COPIED.`;
+    await navigator.clipboard.writeText(inviteLink());
+    $("#board-hint").textContent = "INVITE LINK COPIED. SEND IT TO YOUR FRIEND.";
     tone(610, 0.06, "triangle");
   } catch {
-    $("#board-hint").textContent = `ROOM CODE: ${roomId}`;
+    $("#board-hint").textContent = `SHARE THIS LINK: ${inviteLink()}`;
   }
 });
 $("#sound").addEventListener("click", () => {
@@ -663,3 +715,12 @@ $("#theme").addEventListener("click", () => {
 window.addEventListener("resize", draw);
 setTheme(localStorage.getItem(themeKey) === "dark");
 loadScores();
+{
+  const invited = new URLSearchParams(location.search).get("room");
+  if (invited) {
+    $("#room-code").value = invited.trim().toUpperCase();
+    showScreen("online");
+    $("#online-message").textContent =
+      `YOU'RE INVITED TO ROOM ${invited.trim().toUpperCase()}. ENTER YOUR NAME AND HIT JOIN ROOM.`;
+  }
+}

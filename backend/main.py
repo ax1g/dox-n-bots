@@ -302,6 +302,11 @@ async def room_socket(websocket: WebSocket, room_id: str, token: str):
     try:
         while True:
             message = await websocket.receive_json()
+            if message.get("type") == "ping":
+                await websocket.send_json({"type": "pong"})
+                continue
+            if message.get("type") == "pong":
+                continue
             if message.get("type") != "move":
                 await websocket.send_json(
                     {"type": "error", "message": "Unknown game action."}
