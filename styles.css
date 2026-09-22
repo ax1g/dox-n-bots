@@ -911,6 +911,12 @@ canvas {
     padding: 1.5rem;
     box-shadow: 6px 6px 0 var(--orange);
   }
+  .back-button {
+    position: fixed;
+    top: calc(64px + 0.6rem);
+    left: 6%;
+    z-index: 4;
+  }
   .score-panel {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr) auto;
