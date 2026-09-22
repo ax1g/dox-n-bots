@@ -1,0 +1,1 @@
+ALTER TABLE scores ADD COLUMN match_id TEXT NOT NULL DEFAULT '';

@@ -11,6 +11,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from migrate import migrate
 from pydantic import BaseModel, Field
 
 DB = Path(__file__).with_name("leaderboard.db")
@@ -186,20 +187,7 @@ app.add_middleware(
 
 def connection():
     db = sqlite3.connect(DB)
-    db.execute(
-        "CREATE TABLE IF NOT EXISTS scores (name TEXT NOT NULL, score INTEGER NOT NULL, width INTEGER NOT NULL, height INTEGER NOT NULL, opponent TEXT NOT NULL DEFAULT 'BOT', winner TEXT NOT NULL DEFAULT 'BOT', margin INTEGER NOT NULL DEFAULT 0, mode TEXT NOT NULL DEFAULT 'SOLO', detail TEXT NOT NULL DEFAULT 'CASUAL', created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
-    )
-    columns = {row[1] for row in db.execute("PRAGMA table_info(scores)")}
-    for name, definition in {
-        "opponent": "TEXT NOT NULL DEFAULT 'BOT'",
-        "winner": "TEXT NOT NULL DEFAULT 'BOT'",
-        "margin": "INTEGER NOT NULL DEFAULT 0",
-        "mode": "TEXT NOT NULL DEFAULT 'SOLO'",
-        "detail": "TEXT NOT NULL DEFAULT 'CASUAL'",
-        "match_id": "TEXT NOT NULL DEFAULT ''",
-    }.items():
-        if name not in columns:
-            db.execute(f"ALTER TABLE scores ADD COLUMN {name} {definition}")
+    migrate(db)
     return db
 
 

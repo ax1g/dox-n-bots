@@ -1,5 +1,33 @@
 from fastapi.testclient import TestClient
 from main import Player, Room, app, completed_boxes, edge_id, legal_edge, rooms
+from migrate import migrate
+
+
+def test_migrations_build_expected_schema_and_rerun_safely(tmp_path):
+    import sqlite3
+
+    db = sqlite3.connect(tmp_path / "fresh.db")
+    assert migrate(db) == [1, 2, 3]
+    assert migrate(db) == []
+    columns = [row[1] for row in db.execute("PRAGMA table_info(scores)")]
+    assert columns == [
+        "name",
+        "score",
+        "width",
+        "height",
+        "created_at",
+        "opponent",
+        "winner",
+        "margin",
+        "mode",
+        "detail",
+        "match_id",
+    ]
+    versions = [
+        row[0] for row in db.execute("SELECT version FROM schema_version ORDER BY version")
+    ]
+    assert versions == [1, 2, 3]
+    db.close()
 
 
 def room():
