@@ -209,7 +209,7 @@ function draw() {
       owner === "player" || owner === seat
         ? game.names.player
         : game.names.rival;
-    ctx.fillStyle = color("--ink");
+    ctx.fillStyle = "#fff";
     ctx.font = `800 ${clamp(Math.min(layout.sx, layout.sy) * 0.2, 10, 24)}px "Barlow Condensed"`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -285,7 +285,9 @@ function chooseHover(event) {
       closest = edge;
     }
   }
-  return best < Math.max(28, Math.min(layout.sx, layout.sy) * 0.38)
+  return best < (event.pointerType === "touch"
+    ? Math.max(44, Math.min(layout.sx, layout.sy) * 0.5)
+    : Math.max(28, Math.min(layout.sx, layout.sy) * 0.38))
     ? closest
     : null;
 }
@@ -643,11 +645,17 @@ canvas.addEventListener("pointerleave", () => {
   hover = null;
   draw();
 });
-canvas.addEventListener("pointerdown", () => {
-  if (!hover || !game?.playerTurn) return;
+const placeEdge = (edge) => {
+  if (!edge || !game?.playerTurn) return;
   if (mode === "online")
-    socket?.send(JSON.stringify({ type: "move", edge: hover }));
-  else take(hover, "player");
+    socket?.send(JSON.stringify({ type: "move", edge }));
+  else take(edge, "player");
+};
+canvas.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  const edge = chooseHover(event) ?? hover;
+  hover = edge;
+  placeEdge(edge);
 });
 $("#copy-room").addEventListener("click", async () => {
   try {

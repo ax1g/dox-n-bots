@@ -56,6 +56,13 @@
       </section>
       <section class="screen menu" id="menu" aria-labelledby="menu-title">
         <div class="panel menu-panel">
+          <button
+            class="back-button"
+            data-screen="home"
+            aria-label="Back to home"
+          >
+            ←
+          </button>
           <p class="eyebrow">CHOOSE YOUR FIGHT</p>
           <h2 id="menu-title">GAME<br /><em>MENU.</em></h2>
           <button class="primary" data-screen="solo">
@@ -63,8 +70,8 @@
           ><button class="secondary" data-screen="online">
             ONLINE VS FRIEND <span>→</span></button
           ><button class="secondary" data-screen="scores">
-            LEADERBOARD <span>→</span></button
-          ><button class="text-button" data-screen="home">BACK</button>
+            LEADERBOARD <span>→</span>
+          </button>
         </div>
       </section>
       <section
@@ -73,6 +80,14 @@
         aria-labelledby="solo-title"
       >
         <form class="panel setup" id="solo-form">
+          <button
+            class="back-button"
+            type="button"
+            data-screen="menu"
+            aria-label="Back to game menu"
+          >
+            ←
+          </button>
           <div class="setup-heading">
             <p class="eyebrow">SOLO MATCH</p>
             <h2 id="solo-title">PICK YOUR <em>RIVAL.</em></h2>
@@ -112,14 +127,7 @@
           </div>
           <div class="form-actions">
             <button class="primary" id="start" type="submit">
-              START MATCH <span>↗</span></button
-            ><button
-              class="modal-back"
-              type="button"
-              data-screen="menu"
-              aria-label="Back to game menu"
-            >
-              ←
+              START MATCH <span>↗</span>
             </button>
           </div>
           <p class="hint" id="message" role="status"></p>
@@ -131,6 +139,14 @@
         aria-labelledby="online-title"
       >
         <form class="panel setup" id="online-form">
+          <button
+            class="back-button"
+            type="button"
+            data-screen="menu"
+            aria-label="Back to game menu"
+          >
+            ←
+          </button>
           <div class="setup-heading">
             <p class="eyebrow">ONLINE MATCH</p>
             <h2 id="online-title">PHONE A <em>FRIEND.</em></h2>
@@ -169,14 +185,7 @@
             <button class="primary" type="submit">
               CREATE ROOM <span>↗</span></button
             ><button class="secondary" id="join-room" type="button">
-              JOIN ROOM <span>→</span></button
-            ><button
-              class="modal-back"
-              type="button"
-              data-screen="menu"
-              aria-label="Back to game menu"
-            >
-              ←
+              JOIN ROOM <span>→</span>
             </button>
           </div>
           <p class="hint" id="online-message" role="status">
@@ -190,6 +199,13 @@
         aria-label="Dox 'n Bots game"
       >
         <section class="board-wrap">
+          <button
+            class="back-button"
+            data-screen="menu"
+            aria-label="Leave match"
+          >
+            ←
+          </button>
           <div class="scorebar">
             <span id="player-score">YOU <b>0</b></span
             ><strong id="turn">READY?</strong
@@ -201,8 +217,8 @@
           </p>
           <div class="game-actions">
             <button class="text-button" id="copy-room" hidden>
-              COPY ROOM CODE</button
-            ><button class="text-button" data-screen="menu">LEAVE MATCH</button>
+              COPY ROOM CODE
+            </button>
           </div>
         </section>
       </section>
@@ -212,6 +228,13 @@
         aria-labelledby="scores-title"
       >
         <div class="panel score-panel">
+          <button
+            class="back-button"
+            data-screen="menu"
+            aria-label="Back to game menu"
+          >
+            ←
+          </button>
           <div class="score-copy">
             <p class="eyebrow">LEADERBOARD</p>
             <h2 id="scores-title">WHO<br /><em>WON</em><br />WHAT.</h2>
@@ -222,13 +245,6 @@
               <li>Loading scores...</li>
             </ol>
           </div>
-          <button
-            class="modal-back"
-            data-screen="menu"
-            aria-label="Back to game menu"
-          >
-            ←
-          </button>
         </div>
       </section>
       <section
@@ -239,6 +255,13 @@
       >
         <div class="confetti" id="confetti" aria-hidden="true"></div>
         <div class="result-card">
+          <button
+            class="back-button"
+            data-screen="menu"
+            aria-label="Back to game menu"
+          >
+            ←
+          </button>
           <p class="eyebrow" id="result-kicker">MATCH COMPLETE</p>
           <h2 id="result-title">YOU<br /><em>WIN.</em></h2>
           <p id="result-copy"></p>

@@ -10,8 +10,8 @@
   --line: #262c2638;
   --field: transparent;
   --input: #fffdf5;
-  --claimed-player: #4385ff8c;
-  --claimed-rival: #f044578c;
+  --claimed-player: #4385ff;
+  --claimed-rival: #f04457;
   --hover: #ffd166;
   --silver: #667b91;
   font-family: "DM Sans", sans-serif;
@@ -26,8 +26,8 @@ html[data-theme="dark"] {
   --line: #eff0e833;
   --field: transparent;
   --input: #1b231d;
-  --claimed-player: #6f94cf8c;
-  --claimed-rival: #e66b648c;
+  --claimed-player: #4385ff;
+  --claimed-rival: #f04457;
   --hover: #ffe08a;
   --silver: #d4e1ed;
 }
@@ -117,13 +117,13 @@ button {
   display: grid;
 }
 .landing {
-  grid-template-columns: minmax(18rem, 1fr) minmax(10rem, 0.48fr) minmax(
-      18rem,
-      0.9fr
-    );
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.48fr) minmax(0, 0.9fr);
   align-items: center;
   gap: clamp(1rem, 3vw, 3rem);
   padding: clamp(1.5rem, 5vh, 4rem) 0;
+}
+.landing > * {
+  min-width: 0;
 }
 .eyebrow {
   margin: 0 0 1.2rem;
@@ -159,38 +159,21 @@ button {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12%;
-  width: min(32vw, 430px);
+  width: 100%;
+  max-width: 400px;
   justify-self: center;
   transform: rotate(-8deg);
 }
 .landing-leaderboard {
-  position: relative;
-  width: calc(100% + 9vw);
-  min-width: 29rem;
-  justify-self: start;
-  margin-right: -9vw;
-  padding: 1.25rem 2.25rem 1.25rem 3.4rem;
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  margin: 0;
+  padding: 1.25rem 1.5rem;
   border: 2px solid var(--ink);
-  border-right: 0;
-  clip-path: polygon(7% 0, 100% 0, 100% 100%, 0 100%, 0 16%);
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--blue) 34%, var(--paper)),
-      var(--paper) 62%
-    ),
-    var(--paper);
+  border-radius: 1.25rem;
+  background: var(--paper);
   box-shadow: 7px 7px 0 var(--red);
-}
-.landing-leaderboard::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 1.45rem;
-  background: var(--red);
-  clip-path: polygon(55% 0, 100% 0, 45% 100%, 0 100%);
 }
 .landing-leaderboard .eyebrow {
   margin-bottom: 0.6rem;
@@ -198,35 +181,17 @@ button {
 }
 .landing-leaderboard #landing-scores {
   display: grid;
-  gap: 0.15rem;
+  gap: 0.5rem;
   border-top: 0;
 }
 .landing-leaderboard #landing-scores li {
   min-width: 0;
   border: 2px solid var(--ink);
-  border-radius: 0.8rem 0 0 0.8rem;
+  border-radius: 0.8rem;
   background: var(--paper);
-  box-shadow: 4px 4px 0 color-mix(in srgb, var(--ink) 70%, transparent);
-  transform-origin: left center;
 }
 .landing-leaderboard #landing-scores li:nth-child(1) {
-  transform: translateX(0) scale(1);
   background: color-mix(in srgb, var(--blue) 24%, var(--paper));
-}
-.landing-leaderboard #landing-scores li:nth-child(2) {
-  transform: translateX(1rem) scale(0.92);
-}
-.landing-leaderboard #landing-scores li:nth-child(3) {
-  transform: translateX(2rem) scale(0.84);
-}
-.landing-leaderboard #landing-scores li:nth-child(4) {
-  transform: translateX(3rem) scale(0.76);
-}
-.landing-leaderboard #landing-scores li:nth-child(5) {
-  transform: translateX(4rem) scale(0.68);
-}
-.landing-leaderboard #landing-scores li:nth-child(n + 4) {
-  opacity: 0.82;
 }
 .landing-leaderboard .score-name {
   font-size: 0.78rem;
@@ -284,6 +249,7 @@ button {
 .landing .huge {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
   min-height: 4rem;
   border-radius: 1rem;
   background: var(--blue);
@@ -302,9 +268,10 @@ button {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -10px;
+  inset: 6px;
   border: 2px solid color-mix(in srgb, var(--blue) 65%, transparent);
-  border-radius: 1.35rem;
+  border-radius: 0.65rem;
+  pointer-events: none;
   animation: start-ring 1.8s ease-out infinite;
 }
 .landing .huge::after {
@@ -319,6 +286,7 @@ button {
     transparent 70%
   );
   transform: translateX(-115%);
+  pointer-events: none;
   animation: start-shine 2.7s ease-in-out infinite;
 }
 .landing .huge:hover,
@@ -345,7 +313,7 @@ button {
   70%,
   100% {
     opacity: 0;
-    transform: scale(1.18);
+    transform: scale(1.06);
   }
 }
 @keyframes start-shine {
@@ -369,10 +337,10 @@ button {
   border-radius: 1.25rem;
   box-shadow: 10px 10px 0 var(--red);
 }
-.modal-back {
+.back-button {
   position: absolute;
   top: -1.25rem;
-  right: 1.25rem;
+  left: 1.25rem;
   z-index: 1;
   display: grid;
   width: 3rem;
@@ -391,13 +359,13 @@ button {
     background 0.12s,
     box-shadow 0.12s;
 }
-.modal-back:hover,
-.modal-back:focus-visible {
+.back-button:hover,
+.back-button:focus-visible {
   background: var(--blue);
   transform: translate(-2px, -2px) rotate(-8deg);
   box-shadow: 5px 5px 0 var(--ink);
 }
-.modal-back:active {
+.back-button:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 var(--ink);
 }
@@ -565,6 +533,7 @@ button {
   padding: clamp(0.8rem, 2vw, 1.5rem) 0;
 }
 .board-wrap {
+  position: relative;
   width: min(100%, 980px);
   height: 100%;
   min-height: 0;
@@ -910,7 +879,7 @@ canvas {
     width: 100%;
     min-width: 0;
     margin: 0;
-    padding-left: 2.5rem;
+    padding: 1.25rem;
   }
   .landing h1 {
     font-size: clamp(3.6rem, 18vw, 6.5rem);
