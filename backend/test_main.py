@@ -33,10 +33,21 @@ def test_room_create_join_and_full_room_rejection():
             f"/api/rooms/{data['room_id']}/join", json={"name": "Bravo"}
         )
         assert joined.status_code == 200
-        full = client.post(
+        retake = client.post(
             f"/api/rooms/{data['room_id']}/join", json={"name": "Charlie"}
         )
-        assert full.status_code == 409
+        assert retake.status_code == 200
+        assert retake.json()["seat"] == "p2"
+        with client.websocket_connect(
+            f"/ws/rooms/{data['room_id']}?token={data['token']}"
+        ):
+            with client.websocket_connect(
+                f"/ws/rooms/{data['room_id']}?token={retake.json()['token']}"
+            ):
+                full = client.post(
+                    f"/api/rooms/{data['room_id']}/join", json={"name": "Delta"}
+                )
+                assert full.status_code == 409
 
 
 def test_websocket_answers_ping_without_error():
@@ -77,6 +88,42 @@ def test_websocket_reconnect_with_same_token_resumes_match():
             state = first.receive_json()
             assert state["type"] == "state"
             assert state["players"]["p1"]["connected"] is True
+
+
+def test_takeover_join_fills_disconnected_seat_and_rejects_full_room():
+    rooms.clear()
+    with TestClient(app) as client:
+        created = client.post(
+            "/api/rooms", json={"name": "Alpha", "cols": 3, "rows": 3}
+        ).json()
+        joined = client.post(
+            f"/api/rooms/{created['room_id']}/join", json={"name": "Bravo"}
+        ).json()
+        with client.websocket_connect(
+            f"/ws/rooms/{created['room_id']}?token={created['token']}"
+        ) as first:
+            first.receive_json()
+            with client.websocket_connect(
+                f"/ws/rooms/{created['room_id']}?token={joined['token']}"
+            ):
+                pass
+        retake = client.post(
+            f"/api/rooms/{created['room_id']}/join", json={"name": "Charlie"}
+        )
+        assert retake.status_code == 200
+        assert retake.json()["seat"] == "p2"
+        with client.websocket_connect(
+            f"/ws/rooms/{created['room_id']}?token={created['token']}"
+        ) as first:
+            first.receive_json()
+            with client.websocket_connect(
+                f"/ws/rooms/{retake.json()['room_id']}?token={retake.json()['token']}"
+            ) as third:
+                third.receive_json()
+                full = client.post(
+                    f"/api/rooms/{created['room_id']}/join", json={"name": "Delta"}
+                )
+                assert full.status_code == 409
 
 
 def test_websocket_rejects_out_of_turn_move():

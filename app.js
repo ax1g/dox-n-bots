@@ -91,6 +91,7 @@ function showScreen(name) {
     leftRoom = true;
     clearTimeout(reconnectTimer);
     clearInterval(heartbeatTimer);
+    $("#room-notice").hidden = true;
     if (socket) {
       socket.close();
       socket = null;
@@ -520,6 +521,16 @@ function applyRemoteState(state) {
     }
   }
   syncedRoom = roomId;
+  const notice = $("#room-notice");
+  if (mode === "online" && !game.finished && state.status !== "active") {
+    notice.textContent =
+      state.status === "waiting"
+        ? "WAITING FOR YOUR RIVAL - SHARE YOUR INVITE LINK"
+        : "YOUR RIVAL LEFT - THEY CAN REJOIN WITH THE SAME LINK";
+    notice.hidden = false;
+    if (state.status === "paused" && prev?.status !== "paused")
+      tone(220, 0.15, "triangle", 0.1);
+  } else notice.hidden = true;
   $("#board-hint").textContent =
     state.status === "waiting"
       ? `ROOM ${roomId}: WAITING FOR RIVAL`
@@ -639,6 +650,8 @@ async function createRoom(event) {
     reportedResult = false;
     pendingEdge = null;
     syncedRoom = null;
+    lastMine = null;
+    lastRival = null;
     $("#room-code").value = roomId;
     $("#copy-room").hidden = false;
     $("#board-hint").textContent =
@@ -669,7 +682,16 @@ async function joinRoom() {
         body: JSON.stringify({ name }),
       },
     );
-    if (!response.ok) throw Error();
+    if (!response.ok) {
+      $("#online-message").textContent =
+        response.status === 410
+          ? "THAT MATCH HAS ENDED. CREATE A NEW ROOM."
+          : response.status === 409
+            ? "ROOM IS FULL. WAIT FOR A SEAT TO FREE UP."
+            : "ROOM NOT FOUND. CHECK THE CODE OR LINK.";
+      tone(110, 0.12, "sawtooth");
+      return;
+    }
     const room = await response.json();
     roomId = room.room_id;
     seat = room.seat;
@@ -677,6 +699,8 @@ async function joinRoom() {
     reportedResult = false;
     pendingEdge = null;
     syncedRoom = null;
+    lastMine = null;
+    lastRival = null;
     history.replaceState(null, "", location.pathname);
     $("#copy-room").hidden = true;
     showScreen("game");

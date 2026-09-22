@@ -263,12 +263,24 @@ async def join_room(room_id: str, request: JoinRoom):
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
     async with room.lock:
-        if room.status != "waiting" or "p2" in room.players:
+        if room.status == "finished":
+            raise HTTPException(status_code=410, detail="Match has ended")
+        seat = next(
+            (
+                key
+                for key in ("p2", "p1")
+                if key not in room.players or not room.players[key].connected
+            ),
+            None,
+        )
+        if seat is None:
             raise HTTPException(status_code=409, detail="Room is full")
         token = secrets.token_urlsafe(24)
-        room.players["p2"] = Player(request.name.strip(), token)
+        room.players[seat] = Player(request.name.strip(), token)
+        room.revision += 1
         room.updated_at = time.monotonic()
-    return {"room_id": room.room_id, "seat": "p2", "token": token}
+        await broadcast(room)
+    return {"room_id": room.room_id, "seat": seat, "token": token}
 
 
 @app.websocket("/ws/rooms/{room_id}")
