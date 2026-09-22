@@ -38,10 +38,22 @@ const tone = (frequency, duration = 0.045, type = "sine", volume = 0.13) => {
   oscillator.start();
   oscillator.stop(audio.currentTime + duration);
 };
-const clickSound = (target) => {
-  const primary = target.classList.contains("primary");
-  tone(primary ? 330 : 240, 0.055, "triangle", 0.14);
-  setTimeout(() => tone(primary ? 510 : 390, 0.035, "sine", 0.09), 24);
+const COINS = "sounds/liecio-collect-points-190037.mp3";
+const CLAIM = "sounds/mixkit-arcade-rising-231.wav";
+const WIN = "sounds/mixkit-game-level-completed-2059.wav";
+const GAME_OVER = "sounds/alphix-game-over-417465.mp3";
+const samples = {};
+const sample = (file, volume = 0.5) => {
+  if (!sound) return;
+  try {
+    const el = (samples[file] ??= new Audio(file));
+    el.volume = volume;
+    el.currentTime = 0;
+    el.play().catch(() => {});
+  } catch {}
+};
+const clickSound = () => {
+  sample(COINS, 0.35);
 };
 const color = (name) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -98,11 +110,9 @@ function showResult(result, score, winner) {
   }
   overlay.classList.add("show");
   overlay.setAttribute("aria-hidden", "false");
-  if (winner)
-    [0, 110, 230].forEach((delay, index) =>
-      setTimeout(() => tone(480 + index * 150, 0.16, "triangle", 0.11), delay),
-    );
-  else tone(180, 0.18, "sawtooth", 0.09);
+  if (winner) sample(WIN, 0.6);
+  else if (result === "DRAW") sample(WIN, 0.4);
+  else sample(GAME_OVER, 0.6);
 }
 
 function dimensions(cols, rows) {
@@ -312,11 +322,8 @@ function take(edge, owner) {
   won.forEach(([x, y]) => game.boxes.set(`${x}:${y}`, owner));
   if (owner === "player") game.player += won.length;
   else game.bot += won.length;
-  tone(
-    won.length ? 390 : 170,
-    won.length ? 0.12 : 0.04,
-    won.length ? "triangle" : "sine",
-  );
+  if (won.length) sample(CLAIM, 0.5);
+  else sample(COINS, 0.4);
   if (!won.length) game.playerTurn = !game.playerTurn;
   if (game.boxes.size === (game.cols - 1) * (game.rows - 1)) {
     game.finished = true;
