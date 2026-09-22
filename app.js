@@ -164,19 +164,15 @@ function geometry() {
   canvas.width = rect.width * ratio;
   canvas.height = rect.height * ratio;
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  const pad = Math.max(24, Math.min(rect.width, rect.height) * 0.09);
-  const cell = Math.min(
-    (rect.width - pad * 2) / (game.cols - 1),
-    (rect.height - pad * 2) / (game.rows - 1),
-  );
+  const pad = Math.max(16, Math.min(rect.width, rect.height) * 0.06);
   return {
     w: rect.width,
     h: rect.height,
     pad,
-    sx: cell,
-    sy: cell,
-    ox: (rect.width - cell * (game.cols - 1)) / 2,
-    oy: (rect.height - cell * (game.rows - 1)) / 2,
+    sx: (rect.width - pad * 2) / (game.cols - 1),
+    sy: (rect.height - pad * 2) / (game.rows - 1),
+    ox: pad,
+    oy: pad,
   };
 }
 function point(index, layout) {
