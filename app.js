@@ -671,13 +671,20 @@ async function createRoom(event) {
     tone(110, 0.12, "sawtooth");
   }
 }
-async function joinRoom() {
-  const name = $("#online-name").value.trim();
+function selectOnlineTab(join) {
+  $("#tab-create").setAttribute("aria-selected", String(!join));
+  $("#tab-join").setAttribute("aria-selected", String(join));
+  $("#online-form").hidden = join;
+  $("#join-form").hidden = !join;
+}
+async function joinRoom(event) {
+  event?.preventDefault();
+  const name = $("#join-name").value.trim();
   let code = $("#room-code").value.trim().toUpperCase();
   const linkMatch = code.match(/ROOM=([A-Z0-9]+)/);
   if (linkMatch) code = linkMatch[1];
   if (name.length < 3 || !code) {
-    $("#online-message").textContent = "ENTER YOUR NAME AND A ROOM CODE.";
+    $("#join-message").textContent = "ENTER YOUR NAME AND A ROOM CODE.";
     tone(110, 0.12, "sawtooth");
     return;
   }
@@ -691,7 +698,7 @@ async function joinRoom() {
       },
     );
     if (!response.ok) {
-      $("#online-message").textContent =
+      $("#join-message").textContent =
         response.status === 410
           ? "THAT MATCH HAS ENDED. CREATE A NEW ROOM."
           : response.status === 409
@@ -714,7 +721,7 @@ async function joinRoom() {
     showScreen("game");
     connectRoom(room.token);
   } catch {
-    $("#online-message").textContent = "ROOM NOT FOUND OR ALREADY FULL.";
+    $("#join-message").textContent = "ROOM NOT FOUND OR ALREADY FULL.";
     tone(110, 0.12, "sawtooth");
   }
 }
@@ -768,7 +775,15 @@ $("#solo-form").addEventListener("submit", (event) => {
   tone(420, 0.1, "triangle", 0.1);
 });
 $("#online-form").addEventListener("submit", createRoom);
-$("#join-room").addEventListener("click", joinRoom);
+$("#join-form").addEventListener("submit", joinRoom);
+$("#tab-create").addEventListener("click", () => {
+  selectOnlineTab(false);
+  tone(360, 0.06, "triangle", 0.14);
+});
+$("#tab-join").addEventListener("click", () => {
+  selectOnlineTab(true);
+  tone(360, 0.06, "triangle", 0.14);
+});
 canvas.addEventListener("pointermove", (event) => {
   const next = chooseHover(event);
   if (next && (!hover || id(...next) !== id(...hover)))
@@ -827,7 +842,8 @@ loadScores();
   if (invited) {
     $("#room-code").value = invited.trim().toUpperCase();
     showScreen("online");
-    $("#online-message").textContent =
+    selectOnlineTab(true);
+    $("#join-message").textContent =
       `YOU'RE INVITED TO ROOM ${invited.trim().toUpperCase()}. ENTER YOUR NAME AND HIT JOIN ROOM.`;
   }
 }

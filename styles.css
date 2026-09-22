@@ -417,6 +417,39 @@ button {
   display: grid;
   gap: 1rem;
 }
+#online-form,
+#join-form {
+  display: grid;
+  gap: 1rem;
+}
+#online-form[hidden],
+#join-form[hidden] {
+  display: none;
+}
+.online-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.online-tabs button {
+  min-height: 3rem;
+  border: 2px solid var(--ink);
+  border-radius: 0.75rem;
+  background: var(--input);
+  color: var(--ink);
+  font:
+    800 1.1rem/1 "Barlow Condensed",
+    sans-serif;
+  letter-spacing: 0.06em;
+}
+.online-tabs button[aria-selected="true"] {
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.join-row {
+  grid-template-columns: 1fr 1fr;
+}
 .setup-heading {
   display: flex;
   align-items: end;

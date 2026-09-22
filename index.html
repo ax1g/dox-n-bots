@@ -146,7 +146,7 @@
         id="online"
         aria-labelledby="online-title"
       >
-        <form class="panel setup" id="online-form">
+        <div class="panel setup" id="online-panel">
           <button
             class="back-button"
             type="button"
@@ -159,47 +159,89 @@
             <p class="eyebrow">ONLINE MATCH</p>
             <h2 id="online-title">PHONE A <em>FRIEND.</em></h2>
           </div>
-          <div class="config-row">
-            <label
-              >YOUR NAME
-              <input
-                id="online-name"
-                minlength="3"
-                maxlength="50"
-                required
-                placeholder="MIN. 3 LETTERS"
-                autocomplete="nickname"
-            /></label>
-            <fieldset class="size-toggle" data-size-for="online">
-              <legend>GRID SIZE</legend>
-              <button type="button" data-grid-size="4" aria-pressed="false">
-                S <small>4 × 4</small>
-              </button>
-              <button type="button" data-grid-size="6" aria-pressed="true">
-                M <small>6 × 6</small>
-              </button>
-              <button type="button" data-grid-size="8" aria-pressed="false">
-                L <small>8 × 8</small>
-              </button>
-              <input id="online-cols" type="hidden" value="6" />
-              <input id="online-rows" type="hidden" value="6" />
-            </fieldset>
-            <label
-              >ROOM CODE
-              <input id="room-code" maxlength="8" placeholder="ENTER CODE"
-            /></label>
-          </div>
-          <div class="form-actions">
-            <button class="primary" type="submit">
-              CREATE ROOM <span>↗</span></button
-            ><button class="secondary" id="join-room" type="button">
-              JOIN ROOM <span>→</span>
+          <div class="online-tabs" role="tablist" aria-label="Online mode">
+            <button
+              type="button"
+              id="tab-create"
+              role="tab"
+              aria-selected="true"
+              aria-controls="online-form"
+            >
+              CREATE
+            </button>
+            <button
+              type="button"
+              id="tab-join"
+              role="tab"
+              aria-selected="false"
+              aria-controls="join-form"
+            >
+              JOIN
             </button>
           </div>
-          <p class="hint" id="online-message" role="status">
-            Create a room and share the link, or paste a code to join.
-          </p>
-        </form>
+          <form id="online-form" role="tabpanel" aria-labelledby="tab-create">
+            <div class="config-row">
+              <label
+                >YOUR NAME
+                <input
+                  id="online-name"
+                  minlength="3"
+                  maxlength="50"
+                  required
+                  placeholder="MIN. 3 LETTERS"
+                  autocomplete="nickname"
+              /></label>
+              <fieldset class="size-toggle" data-size-for="online">
+                <legend>GRID SIZE</legend>
+                <button type="button" data-grid-size="4" aria-pressed="false">
+                  S <small>4 × 4</small>
+                </button>
+                <button type="button" data-grid-size="6" aria-pressed="true">
+                  M <small>6 × 6</small>
+                </button>
+                <button type="button" data-grid-size="8" aria-pressed="false">
+                  L <small>8 × 8</small>
+                </button>
+                <input id="online-cols" type="hidden" value="6" />
+                <input id="online-rows" type="hidden" value="6" />
+              </fieldset>
+            </div>
+            <div class="form-actions">
+              <button class="primary" type="submit">
+                CREATE ROOM <span>↗</span>
+              </button>
+            </div>
+            <p class="hint" id="online-message" role="status">
+              Create a room, then share the invite link.
+            </p>
+          </form>
+          <form id="join-form" role="tabpanel" aria-labelledby="tab-join" hidden>
+            <div class="config-row join-row">
+              <label
+                >YOUR NAME
+                <input
+                  id="join-name"
+                  minlength="3"
+                  maxlength="50"
+                  required
+                  placeholder="MIN. 3 LETTERS"
+                  autocomplete="nickname"
+              /></label>
+              <label
+                >ROOM CODE
+                <input id="room-code" maxlength="64" placeholder="PASTE CODE OR LINK"
+              /></label>
+            </div>
+            <div class="form-actions">
+              <button class="primary" type="submit">
+                JOIN ROOM <span>→</span>
+              </button>
+            </div>
+            <p class="hint" id="join-message" role="status">
+              Paste the code or invite link your friend shared.
+            </p>
+          </form>
+        </div>
       </section>
       <section
         class="screen game-screen"
