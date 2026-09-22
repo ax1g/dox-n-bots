@@ -109,6 +109,17 @@ button {
   cursor: pointer;
   color: var(--muted);
 }
+.credit {
+  font: inherit;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.credit:hover,
+.credit:focus-visible {
+  color: var(--orange);
+}
 .screen {
   display: none;
   min-height: 0;

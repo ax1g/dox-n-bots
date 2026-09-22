@@ -12,6 +12,8 @@ This is a nostalgia-driven fun project. Back in school, my mates and I used to p
 
 I built Dox 'n Bots to bring that exact feeling back: pick a rival, build a grid, and turn every last edge into a decision.
 
+Built by [AGX](https://ankushgautam.com.np) — see more at [ankushgautam.com.np](https://ankushgautam.com.np).
+
 ## MVP
 
 - Custom grid width and height (2–10 dots each way)
